@@ -1,0 +1,48 @@
+# MAJIS
+
+ # MAJIS dayside disk mosaic
+ # 2031-04-25T19:15:47Z MAJIS  * SWITCH_MODE  (CURRENT_MODE=STBY_20pct            [ENG])
+ # 2031-04-25T19:25:47Z MAJIS  * SWITCH_MODE  (CURRENT_MODE=SCI_PB_NAD_20pct      [ENG])
+ # 2031-04-25T19:58:47Z MAJIS  * SWITCH_MODE  (CURRENT_MODE=OFF            [ENG])
+ 
+ # MAJIS dayside-ish limb stare
+  2031-04-25T20:50:47Z MAJIS  * SWITCH_MODE  (CURRENT_MODE=STBY_20pct            [ENG])
+  2031-04-25T21:00:47Z MAJIS  * SWITCH_MODE  (CURRENT_MODE=SCI_PB_NAD_20pct      [ENG])
+  2031-04-25T21:31:52Z MAJIS  * SWITCH_MODE  (CURRENT_MODE=OFF            [ENG])
+ 
+ ### Surface Push-broom
+ CLS_APP_CAL  -01:10:00 MAJIS  * SWITCH_MODE  (CURRENT_MODE=STBY_20pct                  [ENG])
+ CLS_APP_CAL  -01:00:00 MAJIS  * SWITCH_MODE  (CURRENT_MODE=SCI_PB_NAD_20pct            [ENG])
+ # Surface Push-broom Motion compensation initiated
+ # TODO: find out since exactly when is motcom needed
+ CLS_APP_CAL  -00:20:00 MAJIS  * SWITCH_MODE  (CURRENT_MODE=SCI_MOTCOM_20pct         [ENG])
+ # ----------------------------------------------------------------------------
+ # CLOSEST APPROACH
+ # ----------------------------------------------------------------------------
+ CLS_APP_CAL   00:20:00 MAJIS  * SWITCH_MODE  (CURRENT_MODE=SCI_PB_NAD_20pct            [ENG])
+ # Surface Push-broom Motion compensation turned off
+ CLS_APP_CAL   01:00:00 MAJIS  * SWITCH_MODE  (CURRENT_MODE=OFF                 [ENG])
+ ### Instrument turned off before slew from PB
+ 
+ ## coriding on JANUS mosaic
+ CLS_APP_CAL  01:50:00 MAJIS  * SWITCH_MODE  (CURRENT_MODE=STBY_20pct                  [ENG])
+ CLS_APP_CAL  02:00:00 MAJIS  * SWITCH_MODE  (CURRENT_MODE=SCI_PB_OFN_20pct           [ENG])
+ CLS_APP_CAL  02:20:00 MAJIS  * SWITCH_MODE  (CURRENT_MODE=OFF                [ENG])
+
+ ## subsolar equatorial limb with slit tangent
+ 2031-04-26T02:50:47Z MAJIS  * SWITCH_MODE  (CURRENT_MODE=STBY_20pct                  [ENG])
+ 2031-04-26T03:00:47Z MAJIS  * SWITCH_MODE  (CURRENT_MODE=SCI_PB_OFN_20pct      [ENG])
+ 2031-04-26T03:30:47Z MAJIS  * SWITCH_MODE  (CURRENT_MODE=STBY_20pct                 [ENG])
+ 
+  ## nighttime equatorial limb with slit tangent
+ 2031-04-26T03:38:47Z MAJIS  * SWITCH_MODE  (CURRENT_MODE=SCI_PB_OFN_20pct      [ENG])
+ 2031-04-26T04:08:47Z MAJIS  * SWITCH_MODE  (CURRENT_MODE=OFF                 [ENG])
+ 
+  ## terminator equatorial limb with slit tangent
+ 2031-04-26T04:28:47Z MAJIS  * SWITCH_MODE  (CURRENT_MODE=STBY_20pct                  [ENG])
+ 2031-04-26T04:38:47Z MAJIS  * SWITCH_MODE  (CURRENT_MODE=SCI_PB_OFN_20pct      [ENG])
+ 2031-04-26T05:08:47Z MAJIS  * SWITCH_MODE  (CURRENT_MODE=OFF                 [ENG])
+
+
+ # ----------------------------------------------------------------------------
+

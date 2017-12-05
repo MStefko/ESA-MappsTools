@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+""" Tools for generating and exploring mosaic acquisitions.
+
+@author: Marcel Stefko
+"""
 from typing import List, NamedTuple, Tuple
 import numpy as np
 from shapely.geometry import Polygon, Point
@@ -6,16 +11,19 @@ from matplotlib import pyplot as plt
 Rectangle = NamedTuple("Rectangle", (("center", Tuple[int]), ("polygon", Polygon)))
 
 class MosaicGenerator:
+    """ Creates mosaics from specified FOV dimensions and disk dimensions.
+
+    """
     def __init__(self, fov_x: float, fov_y: float, disk_radius: float,
-                 overlap: float=0.1, edge_margin: float=0.2, pos_x: float = 0.0,
-                 pos_y: float=0.0):
-        """
-        All numbers should be provided in the same units (e.g. degrees), unless specified
+                 overlap: float = 0.1, edge_margin: float = 0.2, pos_x: float = 0.0,
+                 pos_y: float = 0.0):
+        """All numbers should be provided in the same units (e.g. degrees), unless specified
         otherwise.
         :param fov_x: Total width of instrument FOV
         :param fov_y: Total height of instrument FOV
         :param disk_radius: Radius of planetary disk
-        :param overlap: Required fraction of overlap between neighboring frames. E.g. for 10% overlap, set to 0.1
+        :param overlap: Required fraction of overlap between neighboring frames.
+        E.g. for 10% overlap, set to 0.1
         :param edge_margin: Margin around planetary disk to also be covered by the mosaic
         :param pos_x: Optional requirement on x-position of center of one of mosaic's frames.
         :param pos_y: Optional requirement on x-position of center of one of mosaic's frames.
