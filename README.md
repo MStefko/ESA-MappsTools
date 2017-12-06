@@ -25,4 +25,4 @@ fig = pcg.plot()
 plt.show()
 ```
 
-<img src="img/power_graph.png" style="width: 300px;"/>
+![](img/power_graph.png)
