@@ -60,11 +60,12 @@ class PowerConsumptionGraph:
         of the total power consumption for each instrument.
         """
         total = self.get_cumulative_power().values[-1]
-        print("Consumption by instrument:")
+        message = "Consumption by instrument:\n"
         df = self._get_only_instrument_dataframe()
         for inst in df:
             consumed = df[inst].sum()/(3600.0/self.time_step_s)
-            print(f" - {inst: <5}: {consumed: 7.1f} Wh - {100*consumed/total:4.1f}%")
+            message += f" - {inst: <5}: {consumed: 7.1f} Wh - {100*consumed/total:4.1f}%\n"
+        print(message)
 
     def plot(self) -> plt.Figure:
         """ Generate stacked power consumption plot.
@@ -181,5 +182,5 @@ if __name__ == '__main__':
                                 power_limit_Wh=4065.0)
     pcg.print_total_power_consumed()
     pcg.print_individual_instrument_consumption()
-    fig = pcg.plot()
+    pcg.plot()
     plt.show()

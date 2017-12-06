@@ -14,9 +14,9 @@ and generating mosaic instructions.
 >>> from timestamps import TimestampProcessor
 >>> p = TimestampProcessor('2031-04-25T22:40:47')
 >>> p.utc2delta('2031-04-25T23:42:50')
-+01:02:03
+'+01:02:03'
 >>> p.delta2utc('+01:02:03')
-2031-04-25T23:42:50
+'2031-04-25T23:42:50'
 >>> p.absolute_to_relative_timestamps_itl(
 ...     'tests\\test_itl_file_in.itl',
 ...     'tests\\test_itl_file_out.itl',
@@ -40,7 +40,7 @@ Performing analysis of consumed resources on MAPPS output data:
 Total power consumed: 4199.1 (103.3% of limit).
 >>> pcg.print_individual_instrument_consumption()
 Consumption by instrument:
- - HAA  :   360.0 Wh -  8.6%
+ - HAA  :   360.0 Wh -  8.6%'
  - JMAG :   243.6 Wh -  5.8%
  - PEP  :  1495.1 Wh - 35.6%
  - 3GM  :   670.0 Wh - 16.0%
@@ -51,8 +51,48 @@ Consumption by instrument:
  - MAJIS:   157.5 Wh -  3.8%
  - GALA :    31.5 Wh -  0.8%
  - UVS  :   105.3 Wh -  2.5%
->>> fig = pcg.plot()
+
+>>> pcg.plot()
 >>> plt.show()
 ```
 
 ![](img/power_graph.png)
+
+##### mosaics.py
+Creating optimized mosaics and generating PTX requests.
+```python
+>>> from mosaics import MosaicGenerator
+>>> # A simple 3x4 JANUS mosaic.
+>>> m = MosaicGenerator(1.72, 1.29, 2.25, overlap=0.1, edge_margin=0.1, pos_y=-1.29*0.9/2.0)
+>>> m.plot_mosaic(trimmed=True)
+>>> print(m.generate_offsetAngles(2.0, 1.0))
+No of points: 12.
+Total time duration: 36.00 min.
+<deltaTimes units='min'>    2.0   1.0   2.0   1.0   2.0   1.0   2.0   1.0   2.0   1.0   2.0   1.0   2.0   1.0   2.0   1.0   2.0   1.0   2.0   1.0   2.0   1.0   2.0   1.0 </deltaTimes>
+<xAngles units='deg'>      -1.5  -1.5  -1.5  -1.5  -1.5  -1.5  -1.5  -1.5   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   1.5   1.5   1.5   1.5   1.5   1.5   1.5   1.5 </xAngles>
+<xRates units='deg/min'>    0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 </xRates>
+<yAngles units='deg'>      -1.7  -1.7 -0.58 -0.58  0.58  0.58   1.7   1.7   1.7   1.7  0.58  0.58 -0.58 -0.58  -1.7  -1.7  -1.7  -1.7 -0.58 -0.58  0.58  0.58   1.7   1.7 </yAngles>
+<yRates units='deg/min'>    0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 </yRates>
+>>> plt.grid(True)
+>>> plt.show()
+```
+
+![](img/simple_mosaic.png)
+
+```python
+>>> # A large JANUS mosaic with only imaging of illuminated side.
+>>> m = MosaicGenerator(1.72, 1.29, 7.7 / 2, overlap=0.2, edge_margin=0.1, pos_x=-0.4, pos_y=0.645)
+>>> m.plot_mosaic(trimmed=True, condition="r.center[0]>-1.0")
+>>> print(m.generate_offsetAngles(0.5, 0.3, condition="r.center[0]>-1.0"))
+No of points: 30.
+Total time duration: 24.00 min.
+<deltaTimes units='min'>    0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3 </deltaTimes>
+<xAngles units='deg'>      -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  0.98  0.98  0.98  0.98  0.98  0.98  0.98  0.98  0.98  0.98  0.98  0.98  0.98  0.98  0.98  0.98   2.4   2.4   2.4   2.4   2.4   2.4   2.4   2.4   2.4   2.4   2.4   2.4   2.4   2.4   2.4   2.4   3.7   3.7   3.7   3.7   3.7   3.7   3.7   3.7   3.7   3.7   3.7   3.7 </xAngles>
+<xRates units='deg/min'>    0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 </xRates>
+<yAngles units='deg'>      -3.5  -3.5  -2.5  -2.5  -1.4  -1.4 -0.39 -0.39  0.65  0.65   1.7   1.7   2.7   2.7   3.7   3.7   3.7   3.7   2.7   2.7   1.7   1.7  0.65  0.65 -0.39 -0.39  -1.4  -1.4  -2.5  -2.5  -3.5  -3.5  -3.5  -3.5  -2.5  -2.5  -1.4  -1.4 -0.39 -0.39  0.65  0.65   1.7   1.7   2.7   2.7   3.7   3.7   2.7   2.7   1.7   1.7  0.65  0.65 -0.39 -0.39  -1.4  -1.4  -2.5  -2.5 </yAngles>
+<yRates units='deg/min'>    0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 </yRates>
+>>> plt.grid(True)
+>>> plt.show()
+```
+
+![](img/large_mosaic.png)
