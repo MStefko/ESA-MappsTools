@@ -82,6 +82,6 @@ class TestItlParser(TestCase):
         output_itl = r'itl_file_out.itl'
         reference_output_itl = r'itl_file_ref.itl'
         self.processor.absolute_to_relative_timestamps_itl(input_itl,
-                       output_itl, "CAL", overwrite=True)
+                       output_itl, "CLS_APP_CAL", overwrite=True)
         self.assertTrue(filecmp.cmp(output_itl, reference_output_itl, shallow=False),
             f"Files '{output_itl}' does not match reference '{reference_output_itl}'.")

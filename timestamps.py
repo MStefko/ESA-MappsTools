@@ -104,7 +104,7 @@ class TimestampProcessor:
         :param event_name: Name of event in EVT file (e.g. 'CLS_APP_CAL').
         :param overwrite: If False, an exception is raised in case out_filepath already exists.
         """
-        if overwrite:
+        if not overwrite:
             if os.path.isfile(out_filepath):
                 raise RuntimeError(f"File {out_filepath} already exists. If you want " +
                                    f"to overwrite it, set flag 'overwrite=True'.")
