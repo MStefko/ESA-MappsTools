@@ -282,15 +282,26 @@ class DiskMosaicGenerator:
 
     @staticmethod
     def _optimize_steps_centered(diameter_to_cover: float, fov_width: float, min_overlap: float) \
-            -> Tuple[float, float, float]:
+            -> Tuple[int, float, float]:
+        """ Working in 1 dimension, determines where to place centers of images so that
+        the overlap requirements are satisfied. Basically determines what is the optimal
+        spacing between points required so that the whole diameter is covered in as few
+        steps possible, while fulfilling overlap requirements, and not wasting space at
+        the edges.
+
+        :param diameter_to_cover: Length along one axis to be covered by FOV
+        :param fov_width: FOV length along that axis
+        :param min_overlap: Minimal overlap between neighboring frames
+        :return: (no_of_points, start_position, step_size)
+        """
         if min_overlap < 0.0 or min_overlap >= 1.0:
             raise ValueError("Overlap must be between 0.0 and 1.0.")
         # case when only one image is needed
-        if diameter_to_cover <= fov_width/2:
+        if diameter_to_cover <= fov_width:
             return (1, 0.0, 1.0)
         else:
             effective_fov = fov_width * (1 - min_overlap)
-            no_of_steps = np.math.ceil((diameter_to_cover - fov_width) / effective_fov)
+            no_of_steps = np.math.ceil((diameter_to_cover - fov_width) / effective_fov - 0.00001) # rounding error hack
             # case of odd amount of steps, we have even amount of points
             if no_of_steps % 2 == 1:
                 first_img_loc = (-diameter_to_cover / 2) + 0.5 * fov_width
