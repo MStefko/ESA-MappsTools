@@ -245,28 +245,21 @@ class DataConsumptionGraph:
         """
         # Create pandas stacked plot and format the axis limits
         ax = self._get_only_instrument_dataframe(self.data_accum).plot.area(stacked=True)
-        ax.set_xlim([-15.0, 15.0])
-        ax.set_ylim([0.0,  50000.0])
-        # Plot the black power requirement line
-        # ax.plot(*self._get_power_profile(), label='LIMIT', c='k', lw=3)
-        plt.ylabel('Data rate [kbits/s]')
-        plt.title(f'{self.name} - data rates')
+        ax.set_xlim([-10.0, 10.0])
+        ax.set_ylim([0.0,  60000.0])
+        plt.ylabel('Total acquired data [Mbits]')
+        plt.title(f'{self.name} - data acquired')
         # Reverse the up-down order of labels in the legend because it looks better
         handles, labels = ax.get_legend_handles_labels()
-        ax.legend(handles[::-1], labels[::-1], loc='upper left')
+
         ax.grid()
 
         cumulative_data = self.get_cumulative_data()
-        # Plot the cumulative power consumption on the right side
-        ax2 = ax.twinx()
-        ax2.set_ylabel('Total acquired data [Mbits]')
-        ax2.set_ylim([0.0, 50000.0])
-        ax2.set_xlim([-15.0, 15.0])
-        ax2.plot(cumulative_data.index, cumulative_data,
-                 label='MEMORY', c='g', lw=3)
+        ax.plot(cumulative_data.index, cumulative_data,
+                 label='MEMORY', c='k', lw=3)
         if self.data_limit_Mbits is not None:
-            ax2.plot([-12.0, 12.0], [self.data_limit_Mbits] * 2, label='LIMIT', c='r', lw=3)
-        ax2.legend(loc='upper right')
+            ax.plot([-10.0, 10.0], [self.data_limit_Mbits] * 2, label='LIMIT', c='r', lw=3)
+        ax.legend(handles[::-1], labels[::-1], loc='upper left')
         return plt.gcf()
 
     @staticmethod

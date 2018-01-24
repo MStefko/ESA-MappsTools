@@ -8,7 +8,7 @@ import numpy as np
 from shapely.geometry import Polygon, Point
 from matplotlib import pyplot as plt
 
-Rectangle = NamedTuple("Rectangle", (("center", Tuple[int]), ("polygon", Polygon)))
+Rectangle = NamedTuple("Rectangle", (("center", Tuple[float, float]), ("polygon", Polygon)))
 
 class MosaicGenerator:
     """ Creates mosaics from specified FOV dimensions and disk dimensions.
@@ -160,14 +160,19 @@ class MosaicGenerator:
 
         return deltaTimes + xAngles + xRates + yAngles + yRates
 
+    def print_centers(self):
+        rects = self.get_rectangles_filtered("r.center[0]>-1.0")
+        l = [r.center for r in rects]
+        print(l)
+
 if __name__=='__main__':
 
     # A simple 3x4 JANUS mosaic.
-    m = MosaicGenerator(1.72, 1.29, 2.25, overlap=0.1, edge_margin=0.1, pos_y=-1.29*0.9/2.0)
-    m.plot_mosaic(trimmed=True)
-    print(m.generate_offsetAngles(2.0, 1.0))
-    plt.grid(True)
-    plt.show()
+    #m = MosaicGenerator(1.72, 1.29, 2.25, overlap=0.1, edge_margin=0.1, pos_y=-1.29*0.9/2.0)
+    #m.plot_mosaic(trimmed=True)
+    #print(m.generate_offsetAngles(2.0, 1.0))
+    #plt.grid(True)
+    #plt.show()
 
     # A large JANUS mosaic with only imaging of illuminated side.
     m = MosaicGenerator(1.72, 1.29, 7.7 / 2, overlap=0.2, edge_margin=0.1, pos_x=-0.4, pos_y=0.645)
@@ -175,6 +180,7 @@ if __name__=='__main__':
     print(m.generate_offsetAngles(0.5, 0.3, condition="r.center[0]>-1.0"))
     plt.grid(True)
     plt.show()
+    m.print_centers()
 
 
 
