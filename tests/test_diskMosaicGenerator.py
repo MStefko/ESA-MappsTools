@@ -1,6 +1,6 @@
 from unittest import TestCase
 from unittest.mock import patch
-from mosaics.DiskMosaic import DiskMosaicGenerator
+from mosaics.DiskMosaicGenerator import DiskMosaicGenerator
 
 from datetime import datetime
 
