@@ -12,7 +12,7 @@ class TestDiskMosaicGenerator(TestCase):
     @patch('mosaics.DiskMosaic.spy.limbpt', return_value=[(1, 1), None, None, [(1.0, 0.0, 0.0), (0.894808, 0.173648, 0.0)]])
     def test_generate_symmetric_mosaic(self, mock_str2et, mock_limbpt):
         dmg = DiskMosaicGenerator((3.0, 2.0), "JUICE", "CALLISTO", valid_start_time, "min",
-                      "deg", 2.0, 1.0, 1.0)
+                      "deg", 2.0, 0.04*60)
         dm = dmg.generate_symmetric_mosaic(margin=0.1)
         center_points = [(-4.54032604229169, -5.04032604229169), (-4.54032604229169, -3.360217361527793),
                          (-4.54032604229169, -1.6801086807638965), (-4.54032604229169, 0.0),

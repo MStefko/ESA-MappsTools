@@ -14,7 +14,7 @@ class DiskMosaicGenerator:
                  start_time: datetime,
                  time_unit: str, angular_unit: str,
                  dwell_time: float,
-                 point_slew_time: float, line_slew_time: float):
+                 slew_rate: float):
         """ Create a DiskMosaicGenerator
 
         :param fov_size: 2-tuple (x, y) containing rectangular FOV size
@@ -24,8 +24,7 @@ class DiskMosaicGenerator:
         :param time_unit: Unit for temporal values - "sec", "min" or "hour"
         :param angular_unit: Unit for angular values - "deg", "rad", "arcMin" or "arcSec"
         :param dwell_time: Dwell time at each mosaic point
-        :param point_slew_time: Time to slew between two mosaic points in the same line
-        :param line_slew_time: Time to slew from end of one line to beginning of another
+        :param slew_rate: Rate of slew of spacecraft in units specified
         """
         if any([x < 0.0 for x in fov_size]):
             raise ValueError(f"FOV size values must be non-negative: {fov_size}")
@@ -44,12 +43,9 @@ class DiskMosaicGenerator:
         if dwell_time < 0.0:
             raise ValueError(f"Dwell time must be non-negative: {dwell_time}")
         self.dwell_time = dwell_time
-        if point_slew_time < 0.0:
-            raise ValueError(f"Point slew time must be non-negative: {point_slew_time}")
-        self.point_slew_time = point_slew_time
-        if line_slew_time < 0.0:
-            raise ValueError(f"Line slew time must be non-negative: {line_slew_time}")
-        self.line_slew_time = line_slew_time
+        if slew_rate <= 0.0:
+            raise ValueError(f"Slew rate must be positive: {slew_rate}")
+        self.slew_rate = slew_rate
 
         #calculate angular size of target at start time
         et = datetime2et(start_time)
@@ -73,8 +69,10 @@ class DiskMosaicGenerator:
         diameter_to_cover = (self.target_angular_diameter * (1.0 + margin))
         (points, starts, steps) = zip(*[self._optimize_steps_centered(
             diameter_to_cover, fov_width, min_overlap) for fov_width in self.fov_size])
+        # Calculate slew time, slew through lines along x axis, through points along y axis
+        line_slew_time, point_slew_time = tuple(step * self.slew_rate for step in steps)
         return DiskMosaic(self.fov_size, self.target, self.start_time, self.time_unit, self.angular_unit,
-                          self.dwell_time, self.point_slew_time, self.line_slew_time, starts, steps, points,
+                          self.dwell_time, point_slew_time, line_slew_time, starts, steps, points,
                           target_radius=self.target_angular_diameter/2,
                           target_radius_with_margin=diameter_to_cover/2)
 
@@ -116,7 +114,7 @@ class DiskMosaicGenerator:
 if __name__=='__main__':
     start_time = datetime.strptime("2031-04-25T19:40:47", "%Y-%m-%dT%H:%M:%S")
     rmg = DiskMosaicGenerator((1.72, 1.29), "JUICE", "CALLISTO", start_time, "min",
-                              "deg", 2.0, 1.0, 1.0)
+                              "deg", 2.0, 0.04*60)
     rm = rmg.generate_symmetric_mosaic(margin=0.1)
     print(rm.generate_PTR())
     rm.plot()
