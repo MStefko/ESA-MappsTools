@@ -13,7 +13,7 @@ valid_time = datetime.strptime("2031-04-26T00:40:47", "%Y-%m-%dT%H:%M:%S")
 class TestMisc(TestCase):
     distance_to_surface = 3630.0
     # side_effect list is repeated 20 times so that all tests can run
-    @patch('mosaics.misc.spy.sincpt',
+    @patch('mosaics.misc.spy.subpnt',
            side_effect=20*[ ((0.0, 0.0, 12345.0), 45.5, (0.0, 0.0, 3630.0)),
                          ((300.0, 400.0, 12345.0), 45.7, (0.0, 0.0, 3430.0))])
     @patch('mosaics.misc.datetime2et', side_effect=20*[1346879.3, 1346889.3])
@@ -30,7 +30,7 @@ class TestMisc(TestCase):
             get_nadir_point_surface_velocity_kps("JUICE", "CALLISTO", None, delta_s=1.0)
 
 
-    @patch('mosaics.misc.spy.sincpt',
+    @patch('mosaics.misc.spy.subpnt',
            return_value=((0.0, 0.0, 12345.0), 45.5, (0.0, 0.0, distance_to_surface)))
     @patch('mosaics.misc.datetime2et', return_value = 1346879.3)
     def test_get_pixel_size_km(self, mock_datetime2et, mock_sincpt):

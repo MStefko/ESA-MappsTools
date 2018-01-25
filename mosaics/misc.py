@@ -72,8 +72,8 @@ def get_nadir_point_surface_velocity_kps(probe: str, body: str, time: datetime, 
         raise ValueError("delta_s must be positive.")
     start = datetime2et(time)
     end = datetime2et(time + timedelta(seconds=delta_s))
-    nadir_points = [spy.sincpt("ELLIPSOID", body, et, f"IAU_{body}",
-                               "LT+S", probe, probe, (0.0, 0.0, 1.0))[0]
+    nadir_points = [spy.subpnt("INTERCEPT/ELLIPSOID", body, et, f"IAU_{body}",
+                               "LT+S", probe)[0]
                     for et in (start, end)]
     distance = spy.vdist(*nadir_points)
     return distance / delta_s
@@ -98,8 +98,8 @@ def get_pixel_size_km(probe: str, body: str, time: datetime,
         raise ValueError("fov_full_px must be at least 1")
 
     et = datetime2et(time)
-    nadir_vec = spy.sincpt("ELLIPSOID", body, et, f"IAU_{body}",
-                            "LT+S", probe, probe, (0.0, 0.0, 1.0))[2]
+    nadir_vec = spy.subpnt("INTERCEPT/ELLIPSOID", body, et, f"IAU_{body}",
+                            "LT+S", probe)[2]
     nadir_dist = spy.vnorm(nadir_vec)
     half_angle_rad = 0.5 * fov_full_angle_deg * np.pi / 180
     fov_half_px = fov_full_px / 2
