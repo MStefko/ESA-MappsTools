@@ -9,8 +9,8 @@ valid_start_time = datetime.strptime("2031-04-26T00:40:47", "%Y-%m-%dT%H:%M:%S")
 class TestDiskMosaicGenerator(TestCase):
 
     @patch('mosaics.DiskMosaic.spy.str2et', return_value=1.0)
-    @patch('mosaics.DiskMosaic.spy.limbpt', return_value=[(1, 1), None, None, [(1.0, 0.0, 0.0), (0.894808, 0.173648, 0.0)]])
-    def test_generate_symmetric_mosaic(self, mock_str2et, mock_limbpt):
+    @patch('mosaics.DiskMosaicGenerator.get_body_angular_diameter_rad', return_value=0.19167923151263316)
+    def test_generate_symmetric_mosaic(self, mock_diam, mock_str2et):
         dmg = DiskMosaicGenerator((3.0, 2.0), "JUICE", "CALLISTO", valid_start_time, "min",
                       "deg", 2.0, 0.04*60)
         dm = dmg.generate_symmetric_mosaic(margin=0.1)

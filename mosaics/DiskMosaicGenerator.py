@@ -5,7 +5,7 @@ import numpy as np
 import spiceypy as spy
 
 from mosaics.DiskMosaic import DiskMosaic
-from mosaics.misc import datetime2et
+from mosaics.misc import get_body_angular_diameter_rad
 
 
 class DiskMosaicGenerator:
@@ -48,14 +48,8 @@ class DiskMosaicGenerator:
         self.slew_rate = slew_rate
 
         #calculate angular size of target at start time
-        et = datetime2et(start_time)
-        limb_points = spy.limbpt("TANGENT/ELLIPSOID", self.target, et, f"IAU_{self.target}", "LT+S",
-                                 "CENTER", self.probe, (0.0, 0.0, 1.0), np.pi, 2, 1.0, 1.0, 10)
-        # output sanity check
-        if any([npts != 1 for npts in limb_points[0]]):
-            raise RuntimeError("Unable to determine limb vectors for determining angular size of target.")
-        limb_vectors = limb_points[3]
-        self.target_angular_diameter = spy.vsep(*limb_vectors) * DiskMosaic.allowed_angular_units[self.angular_unit]
+        self.target_angular_diameter = get_body_angular_diameter_rad(self.probe, self.target, start_time) \
+                                       * DiskMosaic.allowed_angular_units[self.angular_unit]
 
     def generate_symmetric_mosaic(self, margin: float = 0.2, min_overlap: float = 0.1):
         """
@@ -66,11 +60,12 @@ class DiskMosaicGenerator:
         on either side overlaps with the neighbor)
         :return: Generated DiskMosaic
         """
+        # TODO: Unit test this important function using a mock object
         diameter_to_cover = (self.target_angular_diameter * (1.0 + margin))
         (points, starts, steps) = zip(*[self._optimize_steps_centered(
             diameter_to_cover, fov_width, min_overlap) for fov_width in self.fov_size])
         # Calculate slew time, slew through lines along x axis, through points along y axis
-        line_slew_time, point_slew_time = tuple(step * self.slew_rate for step in steps)
+        line_slew_time, point_slew_time = tuple(step / self.slew_rate for step in steps)
         return DiskMosaic(self.fov_size, self.target, self.start_time, self.time_unit, self.angular_unit,
                           self.dwell_time, point_slew_time, line_slew_time, starts, steps, points,
                           target_radius=self.target_angular_diameter/2,

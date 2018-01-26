@@ -109,7 +109,11 @@ class DiskMosaic:
         timedelta_kwarg = {DiskMosaic.allowed_time_units[self.time_unit]: slew_time + dwell_time}
         delay = initial_delay + timedelta(**timedelta_kwarg) + final_delay
         end_time = self.start_time + delay
-        return end_time
+        return end_time.replace(microsecond=0)
+
+    @property
+    def end_time(self) -> datetime:
+        return self._calculate_end_time()
 
     def _generate_rectangles(self) -> List[Rectangle]:
         """

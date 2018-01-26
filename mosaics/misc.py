@@ -129,6 +129,22 @@ def get_max_dwell_time_s(max_smear: float, probe: str, body: str,
     smear_per_second = nadir_velocity_kps / pixel_size_km
     return max_smear / smear_per_second
 
+def get_body_angular_diameter_rad(probe: str, body: str, time: datetime) -> float:
+    """ Calculates angular diameter of given body as viewed from probe at given time
+
+    :param probe: SPICE name of probe
+    :param body: SPICE name of target body
+    :param time: datetime of computation
+    :return: Angular diameter of body in radians
+    """
+    et = datetime2et(time)
+    limb_points = spy.limbpt("TANGENT/ELLIPSOID", body, et, f"IAU_{body}", "LT+S",
+                             "CENTER", probe, (0.0, 0.0, 1.0), np.pi, 2, 1.0, 1.0, 10)
+    # output sanity check
+    if any([npts != 1 for npts in limb_points[0]]):
+        raise RuntimeError("Unable to determine limb vectors for determining angular size of target.")
+    limb_vectors = limb_points[3]
+    return spy.vsep(*limb_vectors)
 
 if __name__=="__main__":
     r = Rectangle( (0.0, 0.0), (1.0, 3.0))

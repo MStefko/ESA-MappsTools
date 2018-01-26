@@ -5,7 +5,7 @@ from datetime import datetime
 import numpy as np
 
 from mosaics.misc import get_nadir_point_surface_velocity_kps, \
-     get_pixel_size_km, get_max_dwell_time_s
+     get_pixel_size_km, get_max_dwell_time_s, get_body_angular_diameter_rad
 
 
 valid_time = datetime.strptime("2031-04-26T00:40:47", "%Y-%m-%dT%H:%M:%S")
@@ -56,3 +56,10 @@ class TestMisc(TestCase):
             get_max_dwell_time_s(-0.3, "JUICE", "CALLISTO", valid_time, 1.0, 3)
         with self.assertRaises(ValueError, msg="Should fail on zero max_smear"):
             get_max_dwell_time_s(0.0, "JUICE", "CALLISTO", valid_time, 1.0, 3)
+
+    def test_get_body_angular_diameter_rad(self):
+        with patch('mosaics.misc.spy.limbpt', return_value=[(1, 1), None, None, [(1.0, 0.0, 0.0), (0.894808, 0.173648, 0.0)]]) as mock_limbpt:
+            with patch('mosaics.misc.datetime2et', return_value=134596.3) as mock_datetime2et:
+                self.assertAlmostEqual(get_body_angular_diameter_rad("JUICE", "CALLISTO", valid_time),
+                                       10.9824*np.pi/180, places=4)
+                mock_datetime2et.assert_called_with(valid_time)
