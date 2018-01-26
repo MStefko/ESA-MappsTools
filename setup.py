@@ -10,5 +10,5 @@ setup(
     author_email='marcel.stefko@esa.int',
     description='',
     test_suite='tests',
-    install_requires=['numpy','six','matplotlib','iso8601','spiceypy']
+    install_requires=['numpy','six','matplotlib','iso8601','spiceypy','shapely']
 )
