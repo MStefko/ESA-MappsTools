@@ -6,6 +6,7 @@ before_script:
 
 test:
   script:
+  - pip install spiceypy --no-cache-dir
   - python setup.py test
   - pip install tox flake8  # you can also use tox
   - tox -e py36,flake8
