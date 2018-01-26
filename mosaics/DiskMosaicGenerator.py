@@ -60,12 +60,16 @@ class DiskMosaicGenerator:
         on either side overlaps with the neighbor)
         :return: Generated DiskMosaic
         """
+        if margin <= -1.0:
+            raise ValueError("margin must be larger than -1.0")
+        if min_overlap < 0.0 or min_overlap >= 1.0:
+            raise ValueError("min_overlap must be in the interval <0.0, 1.0)")
         # TODO: Unit test this important function using a mock object
         diameter_to_cover = (self.target_angular_diameter * (1.0 + margin))
         (points, starts, steps) = zip(*[self._optimize_steps_centered(
             diameter_to_cover, fov_width, min_overlap) for fov_width in self.fov_size])
         # Calculate slew time, slew through lines along x axis, through points along y axis
-        line_slew_time, point_slew_time = tuple(step / self.slew_rate for step in steps)
+        line_slew_time, point_slew_time = tuple(abs(step / self.slew_rate) for step in steps)
         return DiskMosaic(self.fov_size, self.target, self.start_time, self.time_unit, self.angular_unit,
                           self.dwell_time, point_slew_time, line_slew_time, starts, steps, points,
                           target_radius=self.target_angular_diameter/2,

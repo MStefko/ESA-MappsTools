@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from mosaics.DiskMosaicGenerator import DiskMosaicGenerator
 
 from datetime import datetime
@@ -50,3 +50,40 @@ class TestDiskMosaicGenerator(TestCase):
         self.assertEqual(osc(4, 1, 0.1), (5, -1.5, 0.75))
 
         self.assertEqual(osc(10, 1, 0.9), (91, -4.5, 0.1))
+
+    @patch('mosaics.DiskMosaicGenerator.DiskMosaic')
+    def test_generate_symmetric_mosaic_explicit_values(self, mock_DiskMosaic):
+        fun = DiskMosaicGenerator.generate_symmetric_mosaic
+        dmg = MagicMock()
+        dmg.target_angular_diameter = 2.5
+        dmg._optimize_steps_centered.side_effect = 10*[(2, -3.6, 1.2), (4, -2.3, -1.8)]
+        dmg.fov_size = (3.3, 1.7)
+        dmg.slew_rate = 0.42
+        dmg.target = "TARGET"
+        dmg.start_time = "START_TIME"
+        fun(dmg, margin=0.3, min_overlap=0.2)
+        mock_DiskMosaic.assert_called_with((3.3, 1.7), dmg.target, dmg.start_time, dmg.time_unit,
+                              dmg.angular_unit, dmg.dwell_time, 1.8/0.42, 1.2/0.42,
+                              (-3.6, -2.3), (1.2, -1.8), (2, 4), target_radius=2.5/2, target_radius_with_margin=2.5 * (1.0 + 0.3) / 2)
+
+        with self.assertRaises(ValueError, msg="Margin below -1.0"):
+            fun(dmg, margin=-1.5)
+        with self.assertRaises(ValueError, msg="Margin equal -1.0"):
+            fun(dmg, margin=-1.0)
+        # should pass
+        fun(dmg, margin=-0.9999)
+
+        with self.assertRaises(ValueError, msg="Overlap below 0.0"):
+            fun(dmg, min_overlap=-0.00001)
+        with self.assertRaises(ValueError, msg="Overlap at 1.0"):
+            fun(dmg, min_overlap=1.0)
+        with self.assertRaises(ValueError, msg="Overlap above 1.0"):
+            fun(dmg, min_overlap=1.3)
+        # should pass
+        fun(dmg, min_overlap=0.0)
+        fun(dmg, min_overlap=0.5)
+        fun(dmg)
+
+
+
+
