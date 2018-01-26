@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import Tuple
 
 import numpy as np
-import spiceypy as spy
 
 from mosaics.DiskMosaic import DiskMosaic
 from mosaics.misc import get_body_angular_diameter_rad
