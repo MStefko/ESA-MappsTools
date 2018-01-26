@@ -14,6 +14,7 @@ class JanusMosaicGenerator:
     probe = "JUICE"
     JUICE_SLEW_RATE_DEG_PER_SEC = 0.025
     FILTER_SWITCH_DURATION_SECONDS = 5.0
+    JANUS_max_Mbits_per_image = JANUS_FOV_RES[0] * JANUS_FOV_RES[1] * 14 / 1_000_000
 
     time_unit_conversions_from_sec = {"sec": 1.0, "min": 1/60.0, "hour": 1/3600}
     angular_unit_conversions_from_deg = {"deg": 1.0, "rad": np.pi/180, "arcMin": 3438*np.pi/180,
@@ -57,9 +58,9 @@ class JanusMosaicGenerator:
 
         # check highest possible exposure time based on smear
         exposure_times_s = [self._get_max_dwell_time_s(max_smear, time + timedelta(minutes=m)) for m in range(int(duration_guess_minutes))]
-        exposure_time_s = min(exposure_times_s + [max_exposure_time_s])
+        used_exposure_time_s = min(exposure_times_s + [max_exposure_time_s])
         dwell_time_s = stabilization_time_s + \
-                     exposure_time_s * no_of_filters + \
+                     used_exposure_time_s * no_of_filters + \
                      self.FILTER_SWITCH_DURATION_SECONDS * (no_of_filters - 1)
 
         slew_rate_in_required_units = self.JUICE_SLEW_RATE_DEG_PER_SEC \
@@ -74,19 +75,24 @@ class JanusMosaicGenerator:
         overlap = 0.1
         dm = dmg.generate_symmetric_mosaic(margin=margin, min_overlap=overlap)
 
-        # TODO verify exposure time coverage
+        image_count = len(dm.center_points) * no_of_filters
+        duration = dm.end_time - dm.start_time
 
         report = \
 f'''JANUS MOSAIC GENERATOR REPORT:
- {self.probe} slew rate: {slew_rate_in_required_units:.3f} {self.angular_unit} / {self.time_unit}
- Start time: {dm.start_time.isoformat()}
- End time:   {dm.end_time.isoformat()} 
  Target: {self.target}
  No of filters: {no_of_filters}
  Max smear: {max_smear} px
  Stabilization time: {stabilization_time_s:.3f} s
+ {self.probe} slew rate: {slew_rate_in_required_units:.3f} {self.angular_unit} / {self.time_unit}
+ Start time: {dm.start_time.isoformat()}
+ End time:   {dm.end_time.isoformat()}
+ Duration: {duration} 
+ Total number of images: {image_count} ({len(dm.center_points)} positions, {no_of_filters} filters at each position).
+ Uncompressed data volume: {image_count * self.JANUS_max_Mbits_per_image:.3f} Mbits
+ Uncompressed average data rate: {image_count * self.JANUS_max_Mbits_per_image * 1000 / duration.total_seconds():.3f} kbits/s
  Calculated max exposure time: {min(exposure_times_s):.3f} s
- Used max exposure time: {exposure_time_s:.3f} s
+ Used exposure time: {used_exposure_time_s:.3f} s
  Used dwell time: {dwell_time_s:.3f} s ({dmg.dwell_time:.3f} {dmg.time_unit} in generator)
 '''
         print(report)
@@ -97,11 +103,24 @@ f'''JANUS MOSAIC GENERATOR REPORT:
         ratio = ang_diameters[1] / ang_diameters[0]
         if ratio > (1 + margin):
             warning = \
-f"""*** WARNING ***
+f"""*** POST-GENERATION WARNING ***
  Given margin ({100*margin:.1f}%) is too small - at end of mosaic, the target will have grown by {100*(ratio-1):.1f}%. 
 *** END WARNING ***
 """
             print(warning)
+
+        # verify exposure time coverage
+        duration_minutes = duration.total_seconds()/60
+        if duration_minutes > duration_guess_minutes:
+            exposure_times_s = [self._get_max_dwell_time_s(max_smear, time + timedelta(minutes=m)) for m in range(int(duration_minutes))]
+            if min(exposure_times_s) < used_exposure_time_s:
+                warning = \
+f"""*** POST-GENERATION WARNING ***
+ Chosen exposure time ({used_exposure_time_s:.3f} s) is larger than maximal allowed exposure time ({min(exposure_times_s):.3f} s).
+ Either set duration_guess_minutes to value at least {duration_minutes:.3f}, or set exposure time to less than {min(exposure_times_s):.3f} s. 
+*** END WARNING ***
+"""
+                print(warning)
 
         return dm
 
@@ -111,8 +130,14 @@ if __name__=='__main__':
 
     start_time = datetime.strptime("2031-04-25T18:40:47", "%Y-%m-%dT%H:%M:%S")
     jmg = JanusMosaicGenerator("CALLISTO", "min", "deg")
-    dm = jmg.create_optimized_mosaic(start_time, 30, stabilization_time_s=5, no_of_filters=2, margin=0.05)
-    print(dm.generate_PTR(3))
+    dm = jmg.create_optimized_mosaic(start_time,
+                                     max_exposure_time_s=30,
+                                     max_smear=0.25,
+                                     stabilization_time_s=5,
+                                     no_of_filters=4,
+                                     margin=0.20,
+                                     duration_guess_minutes=30)
+    print(dm.generate_PTR(decimal_places=3))
     dm.plot()
 
 
