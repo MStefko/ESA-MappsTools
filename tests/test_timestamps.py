@@ -1,6 +1,8 @@
 from unittest import TestCase
 import filecmp
 
+import os
+
 from timestamps import TimestampProcessor
 from iso8601 import ParseError
 
@@ -78,9 +80,9 @@ class TestItlParser(TestCase):
         self.processor = TimestampProcessor('2031-04-25T22:40:47Z')
 
     def test_compare_files(self):
-        input_itl = r'itl_file_in.itl'
-        output_itl = r'itl_file_out.itl'
-        reference_output_itl = r'itl_file_ref.itl'
+        input_itl = os.path.join=(__file__,'..','itl_file_in.itl')
+        output_itl = os.path.join=(__file__,'..','itl_file_out.itl')
+        reference_output_itl = os.path.join=(__file__,'..','itl_file_ref.itl')
         self.processor.absolute_to_relative_timestamps_itl(input_itl,
                        output_itl, "CLS_APP_CAL", overwrite=True)
         self.assertTrue(filecmp.cmp(output_itl, reference_output_itl, shallow=False),
