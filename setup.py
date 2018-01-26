@@ -11,6 +11,6 @@ setup(
     test_suite='tests',
     install_requires=['numpy','six','matplotlib','iso8601','spiceypy','shapely','pandas'],
     packages = find_packages(),
-    package_data = {'': ['tests/*']},
+    package_data = {'': ['tests/*.itl']},
     include_package_data = True
 )
