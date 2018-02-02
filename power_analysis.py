@@ -71,30 +71,37 @@ class PowerConsumptionGraph:
         """ Generate stacked power consumption plot.
         Needs to be shown with plt.show() afterwards
         """
+        X_LIMIT_H = [-15.0, 15.0]
         # Create pandas stacked plot and format the axis limits
-        ax = self._get_only_instrument_dataframe().plot.area(stacked=True)
-        ax.set_xlim([-15.0, 15.0])
-        ax.set_ylim([0.0,  450.0])
+        ax_left = plt.gca()
+
+        ax_right = ax_left.twinx()
+        self._get_only_instrument_dataframe().plot.area(stacked=True, ax=ax_left)
+        ax_left.set_xlim(X_LIMIT_H)
         # Plot the black power requirement line
-        ax.plot(*self._get_power_profile(), label='LIMIT', c='k', lw=3)
+        ax_left.plot(*self._get_power_profile(), label='LIMIT', c='k', lw=3)
         plt.ylabel('Power [W]')
         plt.title(f'{self.name} - power consumption')
         # Reverse the up-down order of labels in the legend because it looks better
-        handles, labels = ax.get_legend_handles_labels()
-        ax.legend(handles[::-1], labels[::-1], loc='upper left')
-        ax.grid()
+        handles, labels = ax_left.get_legend_handles_labels()
+        ax_left.grid()
 
         cumulative_power = self.get_cumulative_power()
         # Plot the cumulative power consumption on the right side
-        ax2 = ax.twinx()
-        ax2.set_ylabel('Total consumed power [Wh]')
-        ax2.set_ylim([0.0, 4700.0])
-        ax2.set_xlim([-15.0, 15.0])
-        ax2.plot(cumulative_power.index, cumulative_power,
+        ax_right.set_ylabel('Total consumed power [Wh]')
+        ax_right.set_xlim(X_LIMIT_H)
+        ax_right.plot(cumulative_power.index, cumulative_power,
                  label='CONSUMED', c='g', lw=3)
         if self.power_limit_Wh is not None:
-            ax2.plot([-12.0, 12.0], [self.power_limit_Wh] * 2, label='LIMIT', c='r', lw=3)
-        ax2.legend(loc='upper right')
+            ax_right.plot(X_LIMIT_H, [self.power_limit_Wh] * 2, label='LIMIT', c='r', lw=3)
+
+        # hack to get the left legend displayed on top on a third axis
+        ax_left.legend().set_visible(False)
+        ax3 = ax_left.twinx()
+        ax3.legend(handles[::-1], labels[::-1], loc='upper left')
+        ax3.yaxis.set_major_locator(plt.NullLocator())
+
+        ax_right.legend(loc='upper right')
         return plt.gcf()
 
     @staticmethod
@@ -246,7 +253,6 @@ class DataConsumptionGraph:
         # Create pandas stacked plot and format the axis limits
         ax = self._get_only_instrument_dataframe(self.data_accum).plot.area(stacked=True)
         ax.set_xlim([-10.0, 10.0])
-        ax.set_ylim([0.0,  60000.0])
         plt.ylabel('Total acquired data [Mbits]')
         plt.title(f'{self.name} - data acquired')
         # Reverse the up-down order of labels in the legend because it looks better
@@ -326,10 +332,10 @@ class DataConsumptionGraph:
 
 if __name__ == '__main__':
     pcg = PowerConsumptionGraph("14C6", '2031-04-25T22:40:47',
-                                r"C:\MAPPS\JUICE_SO\MAPPS\OUTPUT_DATA\14c6_with_data.csv",
+                                r"tests\14c6_test_attitude_and_data.csv",
                                 power_limit_Wh=4065.0)
     dcg = DataConsumptionGraph("14C6", '2031-04-25T22:40:47',
-                                r"C:\MAPPS\JUICE_SO\MAPPS\OUTPUT_DATA\14c6_with_data.csv",
+                                r"tests\14c6_test_attitude_and_data.csv",
                                 data_limit_Mbits=30000.0)
 
     pcg.print_total_power_consumed()

@@ -36,7 +36,7 @@ Performing analysis of consumed resources on MAPPS output data:
 >>> from matplotlib import pyplot as plt
 >>> from power_analysis import PowerConsumptionGraph
 >>> pcg = PowerConsumptionGraph("14C6", '2031-04-25T22:40:47',
-...                            r"C:\MAPPS\JUICE_SO\MAPPS\OUTPUT_DATA\14C6_COMPLETE_test_resources.csv",
+...                            r"tests\14c6_test_attitude_and_data.csv",
 ...                            power_limit_Wh=4065.0)
 >>> pcg.print_total_power_consumed()
 'Total power consumed: 4199.1 (103.3% of limit).'
@@ -59,7 +59,33 @@ Performing analysis of consumed resources on MAPPS output data:
 
 ![](img/power_graph.png)
 
-### mosaics.py
+```python
+>>> from power_analysis import DataConsumptionGraph
+>>> dcg = DataConsumptionGraph("14C6", '2031-04-25T22:40:47',
+...                            r"tests\14c6_test_attitude_and_data.csv",
+...                            data_limit_Mbits=30000.0)
+>>> dcg.print_total_data_acquired()
+'Total data acquired: 36896.2 Mbits (123.0% of limit).'
+>>> dcg.print_individual_instrument_data()
+'Consumption by instrument:
+ - HAA  :   172.8 Mbits -  0.5%
+ - JMAG :   303.4 Mbits -  0.8%
+ - PEP  :   561.3 Mbits -  1.5%
+ - 3GM  :     5.8 Mbits -  0.0%
+ - RPWI :  2054.5 Mbits -  5.6%
+ - SWI  :    19.4 Mbits -  0.1%
+ - RIME :   249.3 Mbits -  0.7%
+ - JANUS:  11184.8 Mbits - 30.3%
+ - MAJIS:  20734.1 Mbits - 56.2%
+ - GALA :    66.0 Mbits -  0.2%
+ - UVS  :  1544.9 Mbits -  4.2%'
+>>> pcg.plot()
+>>> plt.show()
+```
+
+![](img/data_graph.png)
+
+### mosaics
 Creating optimized mosaics and generating PTX requests.
 ```python
 >>> from mosaics import MosaicGenerator
