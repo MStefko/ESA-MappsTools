@@ -79,7 +79,7 @@ Performing analysis of consumed resources on MAPPS output data:
  - MAJIS:  20734.1 Mbits - 56.2%
  - GALA :    66.0 Mbits -  0.2%
  - UVS  :  1544.9 Mbits -  4.2%'
->>> pcg.plot()
+>>> dcg.plot()
 >>> plt.show()
 ```
 

@@ -328,8 +328,6 @@ class DataConsumptionGraph:
         return h if T >= self.CA else -h
 
 
-
-
 if __name__ == '__main__':
     pcg = PowerConsumptionGraph("14C6", '2031-04-25T22:40:47',
                                 r"tests\14c6_test_attitude_and_data.csv",
