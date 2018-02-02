@@ -10,7 +10,7 @@ from typing import List, Tuple
 import numpy as np
 import spiceypy as spy
 
-from mosaics.misc import Rectangle
+from mosaics.misc import Rectangle, get_body_angular_diameter_rad
 
 
 class DiskMosaic:
@@ -207,6 +207,14 @@ f'''<block ref="OBS">
             circle_margin = plt.Circle((0,0), radius = self.target_radius_with_margin,
                                        color='g', fill=False)
             plt.gca().add_artist(circle_margin)
+        try:
+            radius_end = DiskMosaic.allowed_angular_units[self.angular_unit] \
+                    * get_body_angular_diameter_rad("JUICE", self.target, self.end_time) / 2
+            circle_end = plt.Circle((0,0), radius = radius_end,
+                                       color='c', fill=False)
+            plt.gca().add_artist(circle_end)
+        except:
+            print("DiskMosaic plotter: Failed to calculate real radius at mosaic end.")
         plt.axis('equal')
         plt.grid()
         plt.xlabel(f'X coordinate [{self.angular_unit}]')
