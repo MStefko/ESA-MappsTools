@@ -70,9 +70,7 @@ class DiskMosaicGenerator:
         # Calculate slew time, slew through lines along x axis, through points along y axis
         line_slew_time, point_slew_time = tuple(abs(step / self.slew_rate) for step in steps)
         return DiskMosaic(self.fov_size, self.target, self.start_time, self.time_unit, self.angular_unit,
-                          self.dwell_time, point_slew_time, line_slew_time, starts, steps, points,
-                          target_radius=self.target_angular_diameter/2,
-                          target_radius_with_margin=diameter_to_cover/2)
+                          self.dwell_time, point_slew_time, line_slew_time, starts, steps, points)
 
     @staticmethod
     def _optimize_steps_centered(diameter_to_cover: float, fov_width: float, min_overlap: float) \
@@ -110,9 +108,13 @@ class DiskMosaicGenerator:
                 return (no_of_steps + 1, edge_img_loc, step_size)
 
 if __name__=='__main__':
+    import spiceypy as spy
+    MK_C32 = r"C:\Users\Marcel Stefko\Kernels\JUICE\mk\juice_crema_3_2_v151.tm"
+    spy.furnsh(MK_C32)
+
     start_time = datetime.strptime("2031-04-25T19:40:47", "%Y-%m-%dT%H:%M:%S")
-    rmg = DiskMosaicGenerator((1.72, 1.29), "JUICE", "CALLISTO", start_time, "min",
+    dmg = DiskMosaicGenerator((1.72, 1.29), "JUICE", "CALLISTO", start_time, "min",
                               "deg", 2.0, 0.04*60)
-    rm = rmg.generate_symmetric_mosaic(margin=0.1)
-    print(rm.generate_PTR())
-    rm.plot()
+    dm = dmg.generate_symmetric_mosaic(margin=0.1)
+    print(dm.generate_PTR())
+    dm.plot()

@@ -88,41 +88,151 @@ Performing analysis of consumed resources on MAPPS output data:
 ### mosaics
 Creating optimized mosaics and generating PTX requests.
 ```python
->>> from mosaics import MosaicGenerator
->>> # A simple 3x4 JANUS mosaic.
->>> m = MosaicGenerator(1.72, 1.29, 2.25, overlap=0.1, edge_margin=0.1, pos_y=-1.29*0.9/2.0)
->>> m.plot_mosaic(trimmed=True)
->>> print(m.generate_offsetAngles(2.0, 1.0))
-'No of points: 12.
-Total time duration: 36.00 min.
-<deltaTimes units='min'>    2.0   1.0   2.0   1.0   2.0   1.0   2.0   1.0   2.0   1.0   2.0   1.0   2.0   1.0   2.0   1.0   2.0   1.0   2.0   1.0   2.0   1.0   2.0   1.0 </deltaTimes>
-<xAngles units='deg'>      -1.5  -1.5  -1.5  -1.5  -1.5  -1.5  -1.5  -1.5   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   1.5   1.5   1.5   1.5   1.5   1.5   1.5   1.5 </xAngles>
-<xRates units='deg/min'>    0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 </xRates>
-<yAngles units='deg'>      -1.7  -1.7 -0.58 -0.58  0.58  0.58   1.7   1.7   1.7   1.7  0.58  0.58 -0.58 -0.58  -1.7  -1.7  -1.7  -1.7 -0.58 -0.58  0.58  0.58   1.7   1.7 </yAngles>
-<yRates units='deg/min'>    0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 </yRates>'
->>> plt.grid(True)
->>> plt.show()
+>>> from datetime import datetime
+>>> import spiceypy as spy
+>>> MK_C32 = r"C:\Users\Marcel Stefko\Kernels\JUICE\mk\juice_crema_3_2_v151.tm"
+>>> spy.furnsh(MK_C32)
+
+>>> from mosaics.JanusMosaicGenerator import JanusMosaicGenerator
+
+# JANUS disk mosaic of Callisto during 14C6 ingress
+>>> jmg = JanusMosaicGenerator("CALLISTO", "min", "deg")
+>>> start_time = datetime.strptime("2031-04-25T18:40:47", "%Y-%m-%dT%H:%M:%S")
+>>> dm = jmg.generate_optimized_mosaic_iterative(start_time,
+                                                 max_exposure_time_s=15,
+                                                 max_smear=0.25,
+                                                 stabilization_time_s=5,
+                                                 no_of_filters=4,
+                                                 extra_margin=0.05)
+''''Iteration no. 1 out of 30
+         Growth factor estimate:    1.004
+         Margin estimate:           0.054
+         Duration estimate:         1.00000 min
+
+...
+
+Iteration no. 4 out of 30
+         Growth factor estimate:    1.123
+         Margin estimate:           0.173
+         Duration estimate:         26.51667 min
+
+*** STOP ITERATION - EQUILLIBRIUM REACHED ***
+
+JANUS MOSAIC ITERATIVE GENERATOR REPORT:
+ Target: CALLISTO
+ No of filters: 4
+ Max smear: 0.25 px
+ Overlap: 0.100
+ Stabilization time: 5.000 s
+ JUICE slew rate: 1.500 deg / min
+ Start time: 2031-04-25T18:40:47
+ End time:   2031-04-25T19:07:18
+ Duration: 0:26:31
+ Total number of images: 48 (12 positions, 4 filters at each position).
+ Uncompressed data volume: 2021.376 Mbits
+ Uncompressed average data rate: 1270.507 kbits/s
+ Calculated max exposure time: 15.000 s
+ Used exposure time:           15.000 s
+ Used dwell time: 80.000 s (1.333 min in generator)
+
+ No of iterations: 30
+ Requested margin: 5.000 $
+ Real margin:      5.000 %
+ Growth factor:    1.123
+'''
+>>> print(dm.generate_PTR(decimal_places=3))
 ```
 
-![](img/simple_mosaic.png)
+```xml
+<block ref="OBS">
+	<startTime> 2031-04-25T18:40:47 </startTime>
+	<endTime> 2031-04-25T19:07:18 </endTime>
+	<attitude ref="track">
+		<boresight ref="SC_Zaxis"/>
+		<target ref="CALLISTO"/>
+		<offsetRefAxis frame="SC">
+			<x>1.0</x>
+			<y>0.0</y>
+			<z>0.0</z>
+		</offsetRefAxis>
+		<offsetAngles ref="raster">
+			<startTime>2031-04-25T18:41:47</startTime>
+			<xPoints>3</xPoints>
+			<yPoints>4</yPoints>
+			<xStart units="deg">-1.438</xStart>
+			<yStart units="deg">-1.653</yStart>
+			<xDelta units="deg">1.438</xDelta>
+			<yDelta units="deg">1.102</yDelta>
+			<pointSlewTime units="min">0.735</pointSlewTime>
+			<lineSlewTime units="min">0.958</lineSlewTime>
+			<dwellTime units="min">1.333</dwellTime>
+			<lineAxis>Y</lineAxis>
+			<keepLineDir>false</keepLineDir>
+		</offsetAngles>
+		<phaseAngle ref="powerOptimised">
+			<yDir> false </yDir>
+		</phaseAngle>
+	</attitude>
+</block>
+```
 
 ```python
->>> # A large JANUS mosaic with only imaging of illuminated side.
->>> m = MosaicGenerator(1.72, 1.29, 7.7 / 2, overlap=0.2, edge_margin=0.1, pos_x=-0.4, pos_y=0.645)
->>> m.plot_mosaic(trimmed=True, condition="r.center[0]>-1.0")
->>> print(m.generate_offsetAngles(0.5, 0.3, condition="r.center[0]>-1.0"))
-'No of points: 30.
-Total time duration: 24.00 min.
-<deltaTimes units='min'>    0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3   0.5   0.3 </deltaTimes>
-<xAngles units='deg'>      -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  -0.4  0.98  0.98  0.98  0.98  0.98  0.98  0.98  0.98  0.98  0.98  0.98  0.98  0.98  0.98  0.98  0.98   2.4   2.4   2.4   2.4   2.4   2.4   2.4   2.4   2.4   2.4   2.4   2.4   2.4   2.4   2.4   2.4   3.7   3.7   3.7   3.7   3.7   3.7   3.7   3.7   3.7   3.7   3.7   3.7 </xAngles>
-<xRates units='deg/min'>    0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 </xRates>
-<yAngles units='deg'>      -3.5  -3.5  -2.5  -2.5  -1.4  -1.4 -0.39 -0.39  0.65  0.65   1.7   1.7   2.7   2.7   3.7   3.7   3.7   3.7   2.7   2.7   1.7   1.7  0.65  0.65 -0.39 -0.39  -1.4  -1.4  -2.5  -2.5  -3.5  -3.5  -3.5  -3.5  -2.5  -2.5  -1.4  -1.4 -0.39 -0.39  0.65  0.65   1.7   1.7   2.7   2.7   3.7   3.7   2.7   2.7   1.7   1.7  0.65  0.65 -0.39 -0.39  -1.4  -1.4  -2.5  -2.5 </yAngles>
-<yRates units='deg/min'>    0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 </yRates>'
->>> plt.grid(True)
->>> plt.show()
+>>> dm.plot()
 ```
 
-![](img/large_mosaic.png)
+![](img/JANUS_disk_mosaic.png)
+
+```python
+# JANUS mosaic of sun-illuminated surface of Europa during 6E1 egress
+>>> start_time = datetime.strptime("2030-09-17T12:30:00", "%Y-%m-%dT%H:%M:%S")
+>>> jmg = JanusMosaicGenerator("EUROPA", "min", "deg")
+>>> cm = jmg.generate_sunside_mosaic(start_time,
+                                     duration_guess_minutes=30,
+                                     max_exposure_time_s=20,
+                                     max_smear=0.25,
+                                     stabilization_time_s=5,
+                                     no_of_filters=4,
+                                     extra_margin=0.05,
+                                     overlap=0.15)
+>>> print(cm.generate_PTR(decimal_places=3)
+```
+```xml
+<block ref="OBS">
+	<startTime> 2031-04-25T18:40:47 </startTime>
+	<endTime> 2031-04-25T19:07:18 </endTime>
+	<attitude ref="track">
+		<boresight ref="SC_Zaxis"/>
+		<target ref="CALLISTO"/>
+		<offsetRefAxis frame="SC">
+			<x>1.0</x>
+			<y>0.0</y>
+			<z>0.0</z>
+		</offsetRefAxis>
+		<offsetAngles ref="raster">
+			<startTime>2031-04-25T18:41:47</startTime>
+			<xPoints>3</xPoints>
+			<yPoints>4</yPoints>
+			<xStart units="deg">-1.438</xStart>
+			<yStart units="deg">-1.653</yStart>
+			<xDelta units="deg">1.438</xDelta>
+			<yDelta units="deg">1.102</yDelta>
+			<pointSlewTime units="min">0.735</pointSlewTime>
+			<lineSlewTime units="min">0.958</lineSlewTime>
+			<dwellTime units="min">1.333</dwellTime>
+			<lineAxis>Y</lineAxis>
+			<keepLineDir>false</keepLineDir>
+		</offsetAngles>
+		<phaseAngle ref="powerOptimised">
+			<yDir> false </yDir>
+		</phaseAngle>
+	</attitude>
+</block>
+```
+```python
+>>> cm.plot()
+```
+
+![](img/JANUS_sunside_mosaic.png)
 
 ### flybys.py
 Tools for analyzing various properties of flybys such as surface coverage, resolution,

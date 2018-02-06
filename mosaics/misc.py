@@ -8,6 +8,7 @@ from shapely.geometry import Polygon
 import spiceypy as spy
 import numpy as np
 
+conversions_from_rad = {"deg": 180/np.pi, "rad": 1.0, "arcMin": 3438, "arcSec": 206265}
 
 class Rectangle:
     allowed_modes = {"CENTER", "CORNER"}
@@ -146,11 +147,60 @@ def get_body_angular_diameter_rad(probe: str, body: str, time: datetime) -> floa
     limb_vectors = limb_points[3]
     return spy.vsep(*limb_vectors)
 
+def get_illuminated_shape(probe: str, body: str, time: datetime, unit: str) -> Polygon:
+    if unit not in conversions_from_rad:
+        raise ValueError(f"Unknown unit: '{unit}'. Allowed units: {conversions_from_rad.keys()}")
+
+    et = datetime2et(time)
+    ncuts = 20
+
+    sun_position_from_probe = spy.spkpos("SUN", et, f"IAU_{body}", "LT+S", probe)[0]
+    is_sun_on_right = sun_position_from_probe[0] > 0
+    body_position_from_probe = spy.spkpos(body, et, f"IAU_{body}", "LT+S", probe)[0]
+
+    probe_position_from_body = spy.spkpos(probe, et, f"IAU_{body}", "LT+S", body)[0]
+    sun_position_from_body = spy.spkpos("SUN", et, f"IAU_{body}", "LT+S", body)[0]
+    probe_sun_angle = spy.vsep(probe_position_from_body, sun_position_from_body)
+    is_terminator_on_right = ((is_sun_on_right and probe_sun_angle > np.pi/2) or (not is_sun_on_right and probe_sun_angle < np.pi/2))
+
+    x_z_plane_normal_vector = spy.vcrss(sun_position_from_probe, body_position_from_probe)
+    y_z_plane_normal_vector = spy.vcrss(body_position_from_probe, x_z_plane_normal_vector)
+
+    step_limb = - np.pi/ncuts if is_sun_on_right else np.pi/ncuts
+    limb_points = spy.limbpt("TANGENT/ELLIPSOID", body, et, f"IAU_{body}", "LT+S",
+                             "CENTER", probe, x_z_plane_normal_vector, step_limb, ncuts, 1.0, 1.0, ncuts)[3]
+    assert(len(limb_points==ncuts))
+
+    step_terminator = np.pi/ncuts if is_terminator_on_right else - np.pi/ncuts
+    terminator_points = spy.termpt("UMBRAL/TANGENT/ELLIPSOID", "SUN", body, et, f"IAU_{body}", "LT+S",
+                                   "CENTER", probe, x_z_plane_normal_vector, step_terminator, ncuts, 1.0, 1.0, ncuts)[3]
+    assert(len(terminator_points<=ncuts))
+
+
+    points_3d = list(limb_points) + list(reversed(terminator_points))
+    points_2d = []
+    conversion_factor = conversions_from_rad[unit]
+    for p in points_3d:
+        x_rad = np.arcsin(spy.vdot(y_z_plane_normal_vector, p)/(spy.vnorm(y_z_plane_normal_vector)*spy.vnorm(p)))
+        y_rad = np.arcsin(spy.vdot(x_z_plane_normal_vector, p)/(spy.vnorm(x_z_plane_normal_vector)*spy.vnorm(p)))
+        points_2d.append((x_rad * conversion_factor, y_rad * conversion_factor))
+    return Polygon(points_2d)
+
 if __name__=="__main__":
     r = Rectangle( (0.0, 0.0), (1.0, 3.0))
     print(f"Corners: {r.corners}")
     print(f"Polygon: {r.polygon}")
     print(f"Center: {r.center}")
 
+    MK_C32 = r"C:\Users\Marcel Stefko\Kernels\JUICE\mk\juice_crema_3_2_v151.tm"
+    spy.furnsh(MK_C32)
+
+    start_time = datetime.strptime("2031-04-25T18:40:47", "%Y-%m-%dT%H:%M:%S")
+
+    poly = get_illuminated_shape_deg("JUICE", "CALLISTO", start_time)
+    from matplotlib import pyplot as plt
+    plt.plot(*poly.exterior.xy)
+    plt.axis('equal')
+    plt.show()
 
 

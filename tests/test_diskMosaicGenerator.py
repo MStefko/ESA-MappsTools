@@ -64,7 +64,7 @@ class TestDiskMosaicGenerator(TestCase):
         fun(dmg, margin=0.3, min_overlap=0.2)
         mock_DiskMosaic.assert_called_with((3.3, 1.7), dmg.target, dmg.start_time, dmg.time_unit,
                               dmg.angular_unit, dmg.dwell_time, 1.8/0.42, 1.2/0.42,
-                              (-3.6, -2.3), (1.2, -1.8), (2, 4), target_radius=2.5/2, target_radius_with_margin=2.5 * (1.0 + 0.3) / 2)
+                              (-3.6, -2.3), (1.2, -1.8), (2, 4))
 
         with self.assertRaises(ValueError, msg="Margin below -1.0"):
             fun(dmg, margin=-1.5)

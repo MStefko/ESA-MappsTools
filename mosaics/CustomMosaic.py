@@ -2,11 +2,14 @@
 from matplotlib import pyplot as plt
 from datetime import datetime, timedelta
 from typing import List, Tuple
+import traceback
 
 import numpy as np
 import spiceypy as spy
 
-from mosaics.misc import Rectangle, datetime2et
+from mosaics.DiskMosaic import DiskMosaic
+from mosaics.misc import Rectangle, datetime2et, get_body_angular_diameter_rad, get_illuminated_shape
+
 
 class CustomMosaic:
     allowed_time_units = {"sec": "seconds", "min": "minutes", "hour": "hours"}
@@ -17,9 +20,7 @@ class CustomMosaic:
                  time_unit: str, angular_unit: str,
                  dwell_time: float,
                  slew_time_per_unit_angle: float,
-                 center_points: List[Tuple[float, float]],
-                 target_radius = None,
-                 target_radius_with_margin = None):
+                 center_points: List[Tuple[float, float]]):
         """ Create a CustomMosaic
 
 
@@ -67,9 +68,6 @@ class CustomMosaic:
                 raise TypeError("Center points must be iterables of length 2.")
         self._center_points = center_points
 
-        self.target_radius = target_radius
-        self.target_radius_with_margin = target_radius_with_margin
-
     def _calculate_slew_to_next_point(self, point_no: int):
         if not isinstance(point_no, int):
             raise TypeError("point_no must be an int")
@@ -112,7 +110,11 @@ class CustomMosaic:
         timedelta_kwarg = {CustomMosaic.allowed_time_units[self.time_unit]: slew_time + dwell_time}
         delay = initial_delay + timedelta(**timedelta_kwarg) + final_delay
         end_time = self.start_time + delay
-        return end_time
+        return end_time.replace(microsecond=0)
+
+    @property
+    def end_time(self) -> datetime:
+        return self._calculate_end_time()
 
 
     def generate_PTR(self, decimal_places = 3) -> str:
@@ -177,34 +179,18 @@ f'''<block ref="OBS">
 '''
         return PTR
 
-    def plot(self):
-        plt.figure()
-        for r in self.rectangles:
-            r.plot_to_ax(plt.gca(),'b')
-        plt.gca().plot(*zip(*self.center_points),'k')
-        plt.gca().plot(*zip(*self.center_points),'rx')
-
-        if self.target_radius is not None:
-            circle = plt.Circle((0,0), radius=self.target_radius,
-                                color='r', fill=False)
-            plt.gca().add_artist(circle)
-        if self.target_radius_with_margin is not None:
-            circle_margin = plt.Circle((0,0), radius = self.target_radius_with_margin,
-                                       color='g', fill=False)
-            plt.gca().add_artist(circle_margin)
-        plt.axis('equal')
-        plt.grid()
-        plt.xlabel(f'X coordinate [{self.angular_unit}]')
-        plt.ylabel(f'Y coordinate [{self.angular_unit}]')
-        plt.title(f'Custom mosaic of {self.target} at {self.start_time.isoformat()}')
-        plt.show()
+    plot = DiskMosaic.plot
 
 
 
 if __name__=='__main__':
+    MK_C32 = r"C:\Users\Marcel Stefko\Kernels\JUICE\mk\juice_crema_3_2_v151.tm"
+    spy.furnsh(MK_C32)
+
     start_time = datetime.strptime("2031-04-26T00:40:47", "%Y-%m-%dT%H:%M:%S")
     angles = [(-0.40000000000000002, -3.4830000000000001), (-0.40000000000000002, -2.4510000000000001), (-0.40000000000000002, -1.419), (-0.40000000000000002, -0.38700000000000001), (-0.40000000000000002, 0.64500000000000002), (-0.40000000000000002, 1.677), (-0.40000000000000002, 2.7090000000000001), (-0.40000000000000002, 3.7410000000000001), (0.97600000000000009, 3.7410000000000001), (0.97600000000000009, 2.7090000000000001), (0.97600000000000009, 1.677), (0.97600000000000009, 0.64500000000000002), (0.97600000000000009, -0.38700000000000001), (0.97600000000000009, -1.419), (0.97600000000000009, -2.4510000000000001), (0.97600000000000009, -3.4830000000000001), (2.3520000000000003, -3.4830000000000001), (2.3520000000000003, -2.4510000000000001), (2.3520000000000003, -1.419), (2.3520000000000003, -0.38700000000000001), (2.3520000000000003, 0.64500000000000002), (2.3520000000000003, 1.677), (2.3520000000000003, 2.7090000000000001), (2.3520000000000003, 3.7410000000000001), (3.7280000000000006, 2.7090000000000001), (3.7280000000000006, 1.677), (3.7280000000000006, 0.64500000000000002), (3.7280000000000006, -0.38700000000000001), (3.7280000000000006, -1.419), (3.7280000000000006, -2.4510000000000001)]
 
     cm = CustomMosaic((1.72, 1.29), "CALLISTO", start_time, "min",
                       "deg", 0.5, 0.312634, angles)
     print(cm.generate_PTR(decimal_places=5))
+    cm.plot()

@@ -10,7 +10,7 @@ from typing import List, Tuple
 import numpy as np
 import spiceypy as spy
 
-from mosaics.misc import Rectangle, get_body_angular_diameter_rad
+from mosaics.misc import Rectangle, get_body_angular_diameter_rad, get_illuminated_shape
 
 
 class DiskMosaic:
@@ -24,9 +24,7 @@ class DiskMosaic:
                  point_slew_time: float, line_slew_time: float,
                  start: Tuple[float, float],
                  delta: Tuple[float, float],
-                 points: Tuple[int, int],
-                 target_radius = None,
-                 target_radius_with_margin = None):
+                 points: Tuple[int, int]):
         """ Create a DiskMosaic
 
 
@@ -41,8 +39,6 @@ class DiskMosaic:
         :param start: 2-tuple (x, y) starting position
         :param delta: 2-tuple (x, y) spacing between points
         :param points: 2-tuple (x, y) number of points
-        :param target_radius:
-        :param target_radius_with_margin:
         """
         if len(fov_size) != 2:
             raise TypeError("FOV size must be a tuple of length 2")
@@ -84,9 +80,6 @@ class DiskMosaic:
         if any(not isinstance(x, int) for x in points):
             raise TypeError("Number of points in both axes must be an integer.")
         self.points = points
-
-        self.target_radius = target_radius
-        self.target_radius_with_margin = target_radius_with_margin
 
     def _calculate_end_time(self) -> datetime:
         """ Calculates time duration of mosaic, and thus the earliest end time.
@@ -192,34 +185,35 @@ f'''<block ref="OBS">
 '''
         return PTR
 
-    def plot(self):
+    def plot(self, query_spice: bool = True):
         plt.figure()
         for r in self.rectangles:
             r.plot_to_ax(plt.gca(),'b')
         plt.gca().plot(*zip(*self.center_points),'k')
         plt.gca().plot(*zip(*self.center_points),'rx')
+        if query_spice:
+            radius_start = DiskMosaic.allowed_angular_units[self.angular_unit] \
+                    * get_body_angular_diameter_rad("JUICE", self.target, self.start_time) / 2
+            circle_start = plt.Circle((0,0), radius=radius_start,
+                                color='#FF0000', fill=False, linewidth=2)
+            plt.gca().add_artist(circle_start)
 
-        if self.target_radius is not None:
-            circle = plt.Circle((0,0), radius=self.target_radius,
-                                color='r', fill=False)
-            plt.gca().add_artist(circle)
-        if self.target_radius_with_margin is not None:
-            circle_margin = plt.Circle((0,0), radius = self.target_radius_with_margin,
-                                       color='g', fill=False)
-            plt.gca().add_artist(circle_margin)
-        try:
             radius_end = DiskMosaic.allowed_angular_units[self.angular_unit] \
                     * get_body_angular_diameter_rad("JUICE", self.target, self.end_time) / 2
             circle_end = plt.Circle((0,0), radius = radius_end,
-                                       color='c', fill=False)
+                                       color='#A00000', fill=False, linewidth=2, linestyle='-.')
             plt.gca().add_artist(circle_end)
-        except:
-            print("DiskMosaic plotter: Failed to calculate real radius at mosaic end.")
+
+            illuminated_shape_start = get_illuminated_shape("JUICE", self.target, self.start_time, self.angular_unit)
+            plt.gca().plot(*illuminated_shape_start.exterior.xy, '#CCCC00')
+
+            illuminated_shape_end = get_illuminated_shape("JUICE", self.target, self.end_time, self.angular_unit)
+            plt.gca().plot(*illuminated_shape_end.exterior.xy, color='#999900', linestyle='-.')
         plt.axis('equal')
         plt.grid()
         plt.xlabel(f'X coordinate [{self.angular_unit}]')
         plt.ylabel(f'Y coordinate [{self.angular_unit}]')
-        plt.title(f'Raster mosaic of {self.target} at {self.start_time.isoformat()}')
+        plt.title(f'Mosaic of {self.target} at {self.start_time.isoformat()}')
         plt.show()
 
 
@@ -241,4 +235,5 @@ if __name__=="__main__":
     dm = DiskMosaic(fov_size, "CALLISTO", valid_start_time, "min", "deg",
                     dwell_time, point_slew_time, line_slew_time,
                     (-1.5, 1.5), (1.5, -1.5), (3, 3))
+    dm.plot()
 

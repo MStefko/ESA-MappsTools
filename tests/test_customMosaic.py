@@ -31,7 +31,7 @@ class TestCustomMosaic(TestCase):
         generated_PTR = \
             '''<block ref="OBS">
 	<startTime> 2031-04-26T00:40:47 </startTime>
-	<endTime> 2031-04-26T01:13:26.120000 </endTime>
+	<endTime> 2031-04-26T01:13:26 </endTime>
 	<attitude ref="track">
 		<boresight ref="SC_Zaxis"/>
 		<target ref="CALLISTO"/>
@@ -61,7 +61,7 @@ class TestCustomMosaic(TestCase):
         generated_PTR = \
             '''<block ref="OBS">
 	<startTime> 2031-04-26T00:40:47 </startTime>
-	<endTime> 2031-04-26T01:07:34.201684 </endTime>
+	<endTime> 2031-04-26T01:07:34 </endTime>
 	<attitude ref="track">
 		<boresight ref="SC_Zaxis"/>
 		<target ref="CALLISTO"/>
