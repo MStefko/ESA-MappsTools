@@ -319,6 +319,27 @@ f'''JANUS MOSAIC ITERATIVE GENERATOR REPORT:
         cm = CustomMosaic(self.fov_size, self.target, time, self.time_unit, self.angular_unit,
                           dwell_time_s * self.time_unit_conversions_from_sec[self.time_unit],
                           1.0/slew_rate_in_required_units, sorted_center_points)
+
+        duration = cm.end_time - cm.start_time
+        image_count = no_of_filters * len(cm.center_points)
+        report = \
+f'''JANUS SUNSIDE MOSAIC GENERATOR REPORT:
+ Target: {self.target}
+ No of filters: {no_of_filters}
+ Max smear: {max_smear} px
+ Stabilization time: {stabilization_time_s:.3f} s
+ {self.probe} slew rate: {slew_rate_in_required_units:.3f} {self.angular_unit} / {self.time_unit}
+ Start time: {cm.start_time.isoformat()}
+ End time:   {cm.end_time.isoformat()}
+ Duration: {duration} 
+ Total number of images: {image_count} ({len(cm.center_points)} positions, {no_of_filters} filters at each position).
+ Uncompressed data volume: {image_count * self.JANUS_max_Mbits_per_image:.3f} Mbits
+ Uncompressed average data rate: {image_count * self.JANUS_max_Mbits_per_image * 1000 / duration.total_seconds():.3f} kbits/s
+ Calculated max exposure time: {min(exposure_times_s):.3f} s
+ Used exposure time: {used_exposure_time_s:.3f} s
+ Used dwell time: {dwell_time_s:.3f} s ({dmg.dwell_time:.3f} {dmg.time_unit} in generator)
+'''
+        print(report)
         return cm
 
 

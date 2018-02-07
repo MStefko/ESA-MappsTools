@@ -5,7 +5,7 @@
 """
 from typing import Tuple
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from matplotlib import pyplot as plt
 import pandas as pd
 import numpy as np
@@ -256,7 +256,7 @@ class DataConsumptionGraph:
         Needs to be shown with plt.show() afterwards
         """
         # Create pandas stacked plot and format the axis limits
-        ax = self._get_only_instrument_dataframe(self.data_accum).plot.area(stacked=True)
+        ax: plt.Axes = self._get_only_instrument_dataframe(self.data_accum).plot.area(stacked=True)
         ax.set_xlim([-10.0, 10.0])
         plt.ylabel('Total acquired data [Mbits]')
         plt.title(f'{self.name} - data acquired')
@@ -270,6 +270,8 @@ class DataConsumptionGraph:
                 label='MEMORY', c='k', lw=3)
         if self.data_limit_Mbits is not None:
             ax.plot([-10.0, 10.0], [self.data_limit_Mbits] * 2, label='LIMIT', c='r', lw=3)
+            if ax.get_ylim()[1] < self.data_limit_Mbits:
+                ax.set_ylim([0.0, 1.1*self.data_limit_Mbits])
         ax.legend(handles[::-1], labels[::-1], loc='upper left')
         return plt.gcf()
 

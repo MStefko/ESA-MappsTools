@@ -94,7 +94,7 @@ disk of a certain body, or of the sun-illuminated part.
 >>> MK_C32 = r"C:\Users\Marcel Stefko\Kernels\JUICE\mk\juice_crema_3_2_v151.tm"
 >>> spy.furnsh(MK_C32)
 
->>> from mosaics.JanusMosaicGenerator import JanusMosaicGenerator
+>>> from mosaics import JanusMosaicGenerator
 
 # JANUS disk mosaic of Callisto during 14C6 ingress
 >>> jmg = JanusMosaicGenerator("CALLISTO", "min", "deg")
