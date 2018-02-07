@@ -259,6 +259,18 @@ f'''JANUS MOSAIC ITERATIVE GENERATOR REPORT:
                                 stabilization_time_s: float = 0.0, duration_guess_minutes: float = 30,
                                 max_smear: float = 0.25, no_of_filters: int = 1, extra_margin: float = 0.05,
                                 overlap: float = 0.1) -> CustomMosaic:
+        """ Generates mosaic of the sun-illuminated visible part of the body's surface.
+
+        :param time: Time of start of mosaic
+        :param max_exposure_time_s: Maximal exposure time per filter per position
+        :param stabilization_time_s: Time to stabilize after each slew
+        :param duration_guess_minutes: Guess for duration of whole mosaic
+        :param max_smear: Maximal smear per frame in pixels
+        :param no_of_filters: Number of filters used per position
+        :param extra_margin: Extra margin around disk in units of body radii
+        :param overlap: Minimal required overlap of individual frames
+        :return: CustomMosaic of the sun-illuminated surface
+        """
         if max_exposure_time_s <= 0.0:
             raise ValueError("max_exposure_time must be positive.")
         if stabilization_time_s < 0.0:
@@ -325,7 +337,7 @@ if __name__ == '__main__':
                                      overlap=0.15)
 
     cm.plot()
-    print(cm.generate_PTR(decimal_places=3))
+    print(cm.generate_PTR(decimal_places=2))
 
     """
     start_time = datetime.strptime("2031-04-25T18:40:47", "%Y-%m-%dT%H:%M:%S")

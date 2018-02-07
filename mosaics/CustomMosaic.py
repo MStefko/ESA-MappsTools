@@ -134,7 +134,7 @@ class CustomMosaic:
                           f" {slew_time: {f_length}.{decimal_places}}"
         deltaTimes += f" {self.dwell_time*0.5: {f_length}.{decimal_places}}" + \
                       f" {self.dwell_time*0.5: {f_length}.{decimal_places}}" + \
-                      f" {0.0: {f_length}.{decimal_places}}"
+                      f" {self.dwell_time*0.5: {f_length}.{decimal_places}}"
         deltaTimes += " </deltaTimes>"
 
         xAngles = f"<xAngles units='{self.angular_unit}'>    " + \
