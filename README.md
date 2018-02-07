@@ -5,12 +5,11 @@ and generating mosaic instructions.
 
 _Note: None of the tools properly documented actually integrates
  into SPICE yet. The Flyby package is a work in progress._
-## Available packages
 
-### timestamps.py
- - Translating between relative and absolute timestamps, e.g.
+## timestamps.py
+ - Translate between relative and absolute timestamps in MAPPS config files, e.g.
  `CLS_APP_CAL +06:28:00` to `2031-04-26T05:08:47Z`, and vice versa.
- - Batch processing timestamps in ITL files.
+ - Batch process timestamps in ITL files.
 
 ```python
 >>> from timestamps import TimestampProcessor
@@ -30,11 +29,12 @@ _Note: None of the tools properly documented actually integrates
 True
 ```
 
-### power_analysis.py
-Performing analysis of consumed resources on MAPPS output data:
+## power_analysis.py
+Perform analysis of consumed resources on a MAPPS scenario.
 ```python
 >>> from matplotlib import pyplot as plt
 >>> from power_analysis import PowerConsumptionGraph
+# Import MAPPS datapack containing spacecraft resource data
 >>> pcg = PowerConsumptionGraph("14C6", '2031-04-25T22:40:47',
 ...                            r"tests\14c6_test_attitude_and_data.csv",
 ...                            power_limit_Wh=4065.0)
@@ -61,6 +61,8 @@ Performing analysis of consumed resources on MAPPS output data:
 
 ```python
 >>> from power_analysis import DataConsumptionGraph
+# We can use the same datapack, as long as it contains required fields
+# with data consumption values.
 >>> dcg = DataConsumptionGraph("14C6", '2031-04-25T22:40:47',
 ...                            r"tests\14c6_test_attitude_and_data.csv",
 ...                            data_limit_Mbits=30000.0)
@@ -85,8 +87,8 @@ Performing analysis of consumed resources on MAPPS output data:
 
 ![](img/data_graph.png)
 
-### mosaics
-Creating optimized mosaics and generating PTX requests.
+## mosaics
+This module allows you to automatically create mosaics of
 ```python
 >>> from datetime import datetime
 >>> import spiceypy as spy
@@ -234,7 +236,26 @@ JANUS MOSAIC ITERATIVE GENERATOR REPORT:
 
 ![](img/JANUS_sunside_mosaic.png)
 
-### flybys.py
+```python
+>>> spy.unload(MK_C32)
+>>> MK_C30 = r"C:\Users\Marcel Stefko\Kernels\JUICE\mk\juice_crema_3_0_v151.tm"
+>>> spy.furnsh(MK_C30)
+
+# Jupiter mosaic during perijove
+>>> start_time = datetime.strptime("2030-05-31T22:40:47", "%Y-%m-%dT%H:%M:%S")
+>>> jmg = JanusMosaicGenerator("JUPITER", "min", "deg")
+>>> dm = jmg.generate_optimized_mosaic_iterative(start_time,
+                                                 max_exposure_time_s=60,
+                                                 max_smear=0.25,
+                                                 stabilization_time_s=5,
+                                                 no_of_filters=12,
+                                                 extra_margin=0.05)
+>>> dm.plot()
+```
+
+![](img/JANUS_Jupiter_mosaic.png)
+
+## flybys.py
 Tools for analyzing various properties of flybys such as surface coverage, resolution,
 altitude, etc.
 

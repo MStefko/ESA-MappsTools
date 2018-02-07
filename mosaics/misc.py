@@ -155,23 +155,20 @@ def get_illuminated_shape(probe: str, body: str, time: datetime, unit: str) -> P
     ncuts = 20
 
     sun_position_from_probe = spy.spkpos("SUN", et, f"IAU_{body}", "LT+S", probe)[0]
-    is_sun_on_right = sun_position_from_probe[0] > 0
     body_position_from_probe = spy.spkpos(body, et, f"IAU_{body}", "LT+S", probe)[0]
 
     probe_position_from_body = spy.spkpos(probe, et, f"IAU_{body}", "LT+S", body)[0]
     sun_position_from_body = spy.spkpos("SUN", et, f"IAU_{body}", "LT+S", body)[0]
-    probe_sun_angle = spy.vsep(probe_position_from_body, sun_position_from_body)
-    is_terminator_on_right = ((is_sun_on_right and probe_sun_angle > np.pi/2) or (not is_sun_on_right and probe_sun_angle < np.pi/2))
 
     x_z_plane_normal_vector = spy.vcrss(sun_position_from_probe, body_position_from_probe)
     y_z_plane_normal_vector = spy.vcrss(body_position_from_probe, x_z_plane_normal_vector)
 
-    step_limb = - np.pi/ncuts if is_sun_on_right else np.pi/ncuts
+    step_limb = - np.pi/ncuts
     limb_points = spy.limbpt("TANGENT/ELLIPSOID", body, et, f"IAU_{body}", "LT+S",
                              "CENTER", probe, x_z_plane_normal_vector, step_limb, ncuts, 1.0, 1.0, ncuts)[3]
     assert(len(limb_points==ncuts))
 
-    step_terminator = np.pi/ncuts if is_terminator_on_right else - np.pi/ncuts
+    step_terminator = np.pi/ncuts
     terminator_points = spy.termpt("UMBRAL/TANGENT/ELLIPSOID", "SUN", body, et, f"IAU_{body}", "LT+S",
                                    "CENTER", probe, x_z_plane_normal_vector, step_terminator, ncuts, 1.0, 1.0, ncuts)[3]
     assert(len(terminator_points<=ncuts))

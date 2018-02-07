@@ -32,3 +32,19 @@ cm = jmg.generate_sunside_mosaic(start_time,
 
 cm.plot()
 print(cm.generate_PTR(decimal_places=3))
+
+spy.unload(MK_C32)
+MK_C30 = r"C:\Users\Marcel Stefko\Kernels\JUICE\mk\juice_crema_3_0_v151.tm"
+spy.furnsh(MK_C30)
+
+# Jupiter mosaic during perijove
+start_time = datetime.strptime("2030-05-31T22:40:47", "%Y-%m-%dT%H:%M:%S")
+jmg = JanusMosaicGenerator("JUPITER", "min", "deg")
+dm = jmg.generate_optimized_mosaic_iterative(start_time,
+                                             max_exposure_time_s=60,
+                                             max_smear=0.25,
+                                             stabilization_time_s=5,
+                                             no_of_filters=12,
+                                             extra_margin=0.05)
+print(dm.generate_PTR(decimal_places=3))
+dm.plot()
