@@ -3,8 +3,6 @@ This repository contains assorted modules for working with MAPPS and
 Spice, e.g. manipulating timestamps, analyzing power consumption,
 and generating mosaic instructions.
 
-_Note: None of the tools properly documented actually integrates
- into SPICE yet. The Flyby package is a work in progress._
 
 ## timestamps.py
  - Translate between relative and absolute timestamps in MAPPS config files, e.g.
