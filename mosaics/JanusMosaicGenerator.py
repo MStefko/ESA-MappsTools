@@ -16,7 +16,7 @@ class JanusMosaicGenerator:
     JANUS_FOV_RES = (2000, 1504)
     probe = "JUICE"
     JUICE_SLEW_RATE_DEG_PER_SEC = 0.025
-    FILTER_SWITCH_DURATION_SECONDS = 5.0
+    FILTER_SWITCH_DURATION_SECONDS = 2.5
     JANUS_max_Mbits_per_image = JANUS_FOV_RES[0] * JANUS_FOV_RES[1] * 14 / 1_000_000
 
     time_unit_conversions_from_sec = {"sec": 1.0, "min": 1 / 60.0, "hour": 1 / 3600}
@@ -41,6 +41,11 @@ class JanusMosaicGenerator:
         # Convert JANUS FOV size from radians to required angular unit
         self.fov_size = tuple(
             v_rad * self.angular_unit_conversions_from_deg[angular_unit] for v_rad in self.JANUS_FOV_SIZE_DEG)
+
+        self.slew_rate_in_required_units = self.JUICE_SLEW_RATE_DEG_PER_SEC \
+                                      * self.angular_unit_conversions_from_deg[self.angular_unit] \
+                                      / self.time_unit_conversions_from_sec[self.time_unit]
+
 
     def _get_max_dwell_time_s(self, max_smear: float, time: datetime) -> float:
         return get_max_dwell_time_s(max_smear, self.probe, self.target, time,
@@ -80,13 +85,9 @@ class JanusMosaicGenerator:
             used_exposure_time_s * no_of_filters + \
             self.FILTER_SWITCH_DURATION_SECONDS * (no_of_filters - 1)
 
-        slew_rate_in_required_units = self.JUICE_SLEW_RATE_DEG_PER_SEC \
-            * self.angular_unit_conversions_from_deg[self.angular_unit] \
-            / self.time_unit_conversions_from_sec[self.time_unit]
-
         dmg = DiskMosaicGenerator(self.fov_size, "JUICE", self.target, time, self.time_unit,
                                   self.angular_unit, dwell_time_s * self.time_unit_conversions_from_sec[self.time_unit],
-                                  slew_rate_in_required_units)
+                                  self.slew_rate_in_required_units)
 
         overlap = 0.1
         dm = dmg.generate_symmetric_mosaic(margin=margin, min_overlap=overlap)
@@ -173,9 +174,6 @@ f"""*** POST-GENERATION WARNING ***
         if no_of_filters < 1:
             raise ValueError("no_of_filters must be at least 1")
 
-        slew_rate_in_required_units = self.JUICE_SLEW_RATE_DEG_PER_SEC \
-                                      * self.angular_unit_conversions_from_deg[self.angular_unit] \
-                                      / self.time_unit_conversions_from_sec[self.time_unit]
 
         # initial guess for duration - from this we calculate the exposure time
         duration_guess_minutes = 1.0
@@ -208,7 +206,7 @@ f'''Iteration no. {i} out of {n_iterations}
             dmg = DiskMosaicGenerator(self.fov_size, "JUICE", self.target, time, self.time_unit,
                                       self.angular_unit,
                                       dwell_time_s * self.time_unit_conversions_from_sec[self.time_unit],
-                                      slew_rate_in_required_units)
+                                      self.slew_rate_in_required_units)
             dm = dmg.generate_symmetric_mosaic(margin=margin, min_overlap=overlap)
 
             # update time interval estimate
@@ -237,7 +235,7 @@ f'''JANUS MOSAIC ITERATIVE GENERATOR REPORT:
  Max smear: {max_smear} px
  Overlap: {overlap:.3f}
  Stabilization time: {stabilization_time_s:.3f} s
- {self.probe} slew rate: {slew_rate_in_required_units:.3f} {self.angular_unit} / {self.time_unit}
+ {self.probe} slew rate: {self.slew_rate_in_required_units:.3f} {self.angular_unit} / {self.time_unit}
  Start time: {dm.start_time.isoformat()}
  End time:   {dm.end_time.isoformat()}
  Duration: {duration} 
@@ -308,7 +306,7 @@ f'''JANUS MOSAIC ITERATIVE GENERATOR REPORT:
 
         cm = CustomMosaic(self.fov_size, self.target, time, self.time_unit, self.angular_unit,
                           dwell_time_s * self.time_unit_conversions_from_sec[self.time_unit],
-                          slew_rate_in_required_units, sorted_center_points)
+                          1.0/slew_rate_in_required_units, sorted_center_points)
         return cm
 
 

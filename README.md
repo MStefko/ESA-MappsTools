@@ -86,7 +86,8 @@ Perform analysis of consumed resources on a MAPPS scenario.
 ![](img/data_graph.png)
 
 ## mosaics
-This module allows you to automatically create mosaics of
+This module allows you to automatically create JANUS mosaics of either the full
+disk of a certain body, or of the sun-illuminated part.
 ```python
 >>> from datetime import datetime
 >>> import spiceypy as spy
@@ -198,29 +199,23 @@ JANUS MOSAIC ITERATIVE GENERATOR REPORT:
 ```
 ```xml
 <block ref="OBS">
-	<startTime> 2031-04-25T18:40:47 </startTime>
-	<endTime> 2031-04-25T19:07:18 </endTime>
+	<startTime> 2030-09-17T12:30:00 </startTime>
+	<endTime> 2030-09-17T12:48:44 </endTime>
 	<attitude ref="track">
 		<boresight ref="SC_Zaxis"/>
-		<target ref="CALLISTO"/>
+		<target ref="EUROPA"/>
 		<offsetRefAxis frame="SC">
 			<x>1.0</x>
 			<y>0.0</y>
 			<z>0.0</z>
 		</offsetRefAxis>
-		<offsetAngles ref="raster">
-			<startTime>2031-04-25T18:41:47</startTime>
-			<xPoints>3</xPoints>
-			<yPoints>4</yPoints>
-			<xStart units="deg">-1.438</xStart>
-			<yStart units="deg">-1.653</yStart>
-			<xDelta units="deg">1.438</xDelta>
-			<yDelta units="deg">1.102</yDelta>
-			<pointSlewTime units="min">0.735</pointSlewTime>
-			<lineSlewTime units="min">0.958</lineSlewTime>
-			<dwellTime units="min">1.333</dwellTime>
-			<lineAxis>Y</lineAxis>
-			<keepLineDir>false</keepLineDir>
+		<offsetAngles ref="custom">
+			<startTime>2030-09-17T12:31:00</startTime>
+			<deltaTimes units='min'>   0.246  0.246  0.772  0.246  0.246  0.675  0.246  0.246  0.675  0.246  0.246  0.675  0.246  0.246  0.675  0.246  0.246  0.675  0.246  0.246  0.772  0.246  0.246   1.54  0.246  0.246  0.675  0.246  0.246  0.675  0.246  0.246  0.675  0.246  0.246  0.675  0.246  0.246  0.675  0.246  0.246    0.0 </deltaTimes>
+			<xAngles units='deg'>        0.0    0.0    0.0   1.16   1.16   1.16   1.16   1.16   1.16   1.16   1.16   1.16   1.16   1.16   1.16   1.16   1.16   1.16   1.16   1.16   1.16    0.0    0.0    0.0   2.32   2.32   2.32   2.32   2.32   2.32   2.32   2.32   2.32   2.32   2.32   2.32   2.32   2.32   2.32   2.32   2.32   2.32 </xAngles>
+			<xRates units='deg/min'>     0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0 </xRates>
+			<yAngles units='deg'>       2.53   2.53   2.53   2.53   2.53   2.53   1.52   1.52   1.52  0.506  0.506  0.506 -0.506 -0.506 -0.506  -1.52  -1.52  -1.52  -2.53  -2.53  -2.53  -2.53  -2.53  -2.53  -2.53  -2.53  -2.53  -1.52  -1.52  -1.52 -0.506 -0.506 -0.506  0.506  0.506  0.506   1.52   1.52   1.52   2.53   2.53   2.53 </yAngles>
+			<yRates units='deg/min'>     0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0 </yRates>
 		</offsetAngles>
 		<phaseAngle ref="powerOptimised">
 			<yDir> false </yDir>
