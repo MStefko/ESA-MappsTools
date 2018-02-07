@@ -9,7 +9,9 @@ from mosaics.tsp_solver import solve_tsp
 import numpy as np
 import spiceypy as spy
 
+
 class JanusMosaicGenerator:
+    """ Generator for mosaics optimized for JANUS FOV and behavior."""
     JANUS_FOV_SIZE_DEG = (1.72, 1.29)
     JANUS_FOV_RES = (2000, 1504)
     probe = "JUICE"
@@ -17,9 +19,9 @@ class JanusMosaicGenerator:
     FILTER_SWITCH_DURATION_SECONDS = 5.0
     JANUS_max_Mbits_per_image = JANUS_FOV_RES[0] * JANUS_FOV_RES[1] * 14 / 1_000_000
 
-    time_unit_conversions_from_sec = {"sec": 1.0, "min": 1/60.0, "hour": 1/3600}
-    angular_unit_conversions_from_deg = {"deg": 1.0, "rad": np.pi/180, "arcMin": 3438*np.pi/180,
-                                         "arcSec": 206265*np.pi/180}
+    time_unit_conversions_from_sec = {"sec": 1.0, "min": 1 / 60.0, "hour": 1 / 3600}
+    angular_unit_conversions_from_deg = {"deg": 1.0, "rad": np.pi / 180, "arcMin": 3438 * np.pi / 180,
+                                         "arcSec": 206265 * np.pi / 180}
 
     def __init__(self, target: str, time_unit: str = "min", angular_unit: str = "deg"):
         """ Creates a JanusMosaicGenerator
@@ -37,15 +39,28 @@ class JanusMosaicGenerator:
         self.angular_unit = angular_unit
 
         # Convert JANUS FOV size from radians to required angular unit
-        self.fov_size = tuple(v_rad * self.angular_unit_conversions_from_deg[angular_unit] for v_rad in self.JANUS_FOV_SIZE_DEG)
+        self.fov_size = tuple(
+            v_rad * self.angular_unit_conversions_from_deg[angular_unit] for v_rad in self.JANUS_FOV_SIZE_DEG)
 
     def _get_max_dwell_time_s(self, max_smear: float, time: datetime) -> float:
         return get_max_dwell_time_s(max_smear, self.probe, self.target, time,
-                                    self.JANUS_FOV_SIZE_DEG[0], self.JANUS_FOV_RES[0])
+            self.JANUS_FOV_SIZE_DEG[0], self.JANUS_FOV_RES[0])
 
     def generate_optimized_mosaic(self, time: datetime, max_exposure_time_s: float,
                                   duration_guess_minutes: float = 30, stabilization_time_s: float = 0.0,
                                   max_smear: float = 0.25, no_of_filters: int = 1, margin: float = 0.1) -> DiskMosaic:
+        """ Creates a mosaic with image positions optimized for minimal frame number,
+        and minimal distance between frames, while preserving required overlap and margin.
+
+        :param time: Start time of mosaic
+        :param max_exposure_time_s: Maximal exposure time for one frame
+        :param duration_guess_minutes: Initial guess for duration of mosaic
+        :param stabilization_time_s: Stabilization time after each position change
+        :param max_smear: Maximal allowed smear in units of pixels
+        :param no_of_filters: Number of filters used per each position
+        :param margin: Extra space left around the body disk in units of body radii
+        :return: Optimized DiskMosaic
+        """
         if max_exposure_time_s <= 0.0:
             raise ValueError("max_exposure_time must be positive.")
         if duration_guess_minutes < 1.0:
@@ -58,16 +73,16 @@ class JanusMosaicGenerator:
             raise ValueError("no_of_filters must be at least 1")
 
         # check highest possible exposure time based on smear
-        exposure_times_s = [self._get_max_dwell_time_s(max_smear, time + timedelta(minutes=m)) for m in range(int(duration_guess_minutes))]
+        exposure_times_s = [self._get_max_dwell_time_s(max_smear, time + timedelta(minutes=m)) for m in
+                            range(int(duration_guess_minutes))]
         used_exposure_time_s = min(exposure_times_s + [max_exposure_time_s])
         dwell_time_s = stabilization_time_s + \
-                     used_exposure_time_s * no_of_filters + \
-                     self.FILTER_SWITCH_DURATION_SECONDS * (no_of_filters - 1)
+            used_exposure_time_s * no_of_filters + \
+            self.FILTER_SWITCH_DURATION_SECONDS * (no_of_filters - 1)
 
         slew_rate_in_required_units = self.JUICE_SLEW_RATE_DEG_PER_SEC \
-                                      * self.angular_unit_conversions_from_deg[self.angular_unit] \
-                                      / self.time_unit_conversions_from_sec[self.time_unit]
-
+            * self.angular_unit_conversions_from_deg[self.angular_unit] \
+            / self.time_unit_conversions_from_sec[self.time_unit]
 
         dmg = DiskMosaicGenerator(self.fov_size, "JUICE", self.target, time, self.time_unit,
                                   self.angular_unit, dwell_time_s * self.time_unit_conversions_from_sec[self.time_unit],
@@ -111,9 +126,10 @@ f"""*** POST-GENERATION WARNING ***
             print(warning)
 
         # verify exposure time coverage
-        duration_minutes = duration.total_seconds()/60
+        duration_minutes = duration.total_seconds() / 60
         if duration_minutes > duration_guess_minutes:
-            exposure_times_s = [self._get_max_dwell_time_s(max_smear, time + timedelta(minutes=m)) for m in range(int(duration_minutes))]
+            exposure_times_s = [self._get_max_dwell_time_s(max_smear, time + timedelta(minutes=m)) for m in
+                range(int(duration_minutes))]
             if min(exposure_times_s) < used_exposure_time_s:
                 warning = \
 f"""*** POST-GENERATION WARNING ***
@@ -174,11 +190,11 @@ f"""*** POST-GENERATION WARNING ***
             margin = (ratio - 1 if ratio > 1 else 0.0) + extra_margin
 
             iter_report = \
-                f'''Iteration no. {i} out of {n_iterations}
-         Growth factor estimate:    {ratio:.3f}
-         Margin estimate:           {margin:.3f}
-         Duration estimate:         {duration_guess_minutes:.5f} min
-                '''
+f'''Iteration no. {i} out of {n_iterations}
+    Growth factor estimate:    {ratio:.3f}
+    Margin estimate:           {margin:.3f}
+    Duration estimate:         {duration_guess_minutes:.5f} min
+'''
             print(iter_report)
 
             # calculate exposure time and dwell time based on last time interval estimate
@@ -186,18 +202,19 @@ f"""*** POST-GENERATION WARNING ***
                                 list(range(int(duration_guess_minutes))) + [duration_guess_minutes]]
             used_exposure_time_s = min(exposure_times_s + [max_exposure_time_s])
             dwell_time_s = stabilization_time_s + \
-                         used_exposure_time_s * no_of_filters + \
-                         self.FILTER_SWITCH_DURATION_SECONDS * (no_of_filters - 1)
+                used_exposure_time_s * no_of_filters + \
+                self.FILTER_SWITCH_DURATION_SECONDS * (no_of_filters - 1)
 
             dmg = DiskMosaicGenerator(self.fov_size, "JUICE", self.target, time, self.time_unit,
-                                      self.angular_unit, dwell_time_s * self.time_unit_conversions_from_sec[self.time_unit],
+                                      self.angular_unit,
+                                      dwell_time_s * self.time_unit_conversions_from_sec[self.time_unit],
                                       slew_rate_in_required_units)
             dm = dmg.generate_symmetric_mosaic(margin=margin, min_overlap=overlap)
 
             # update time interval estimate
             time_interval = (dm.start_time, dm.end_time)
             duration = dm.end_time - dm.start_time
-            if (duration.total_seconds()/60 == duration_guess_minutes):
+            if (duration.total_seconds() / 60 == duration_guess_minutes):
                 print("*** STOP ITERATION - EQUILLIBRIUM REACHED ***\n")
                 break
             else:
@@ -206,7 +223,7 @@ f"""*** POST-GENERATION WARNING ***
 
         # calculate final growth ratio
         ang_diameters = [get_body_angular_diameter_rad(self.probe, self.target, t) for t in
-                             time_interval]
+                         time_interval]
         ratio = max(ang_diameters[1] / ang_diameters[0], 1.0)
         # calculate final max exposure time
         exposure_times_s = [self._get_max_dwell_time_s(max_smear, time + timedelta(minutes=m)) for m in
@@ -253,16 +270,16 @@ f'''JANUS MOSAIC ITERATIVE GENERATOR REPORT:
         if no_of_filters < 1:
             raise ValueError("no_of_filters must be at least 1")
         slew_rate_in_required_units = self.JUICE_SLEW_RATE_DEG_PER_SEC \
-                                      * self.angular_unit_conversions_from_deg[self.angular_unit] \
-                                      / self.time_unit_conversions_from_sec[self.time_unit]
+            * self.angular_unit_conversions_from_deg[self.angular_unit] \
+            / self.time_unit_conversions_from_sec[self.time_unit]
 
         # check highest possible exposure time based on smear
         exposure_times_s = [self._get_max_dwell_time_s(max_smear, time + timedelta(minutes=m)) for m in
                             range(int(duration_guess_minutes))]
         used_exposure_time_s = min(exposure_times_s + [max_exposure_time_s])
         dwell_time_s = stabilization_time_s + \
-                       used_exposure_time_s * no_of_filters + \
-                       self.FILTER_SWITCH_DURATION_SECONDS * (no_of_filters - 1)
+            used_exposure_time_s * no_of_filters + \
+            self.FILTER_SWITCH_DURATION_SECONDS * (no_of_filters - 1)
         time_interval = (time, time + timedelta(minutes=duration_guess_minutes))
         ang_diameters = [get_body_angular_diameter_rad(self.probe, self.target, t) for t in
                          time_interval]
@@ -276,16 +293,18 @@ f'''JANUS MOSAIC ITERATIVE GENERATOR REPORT:
 
         tiles = dm.rectangles
         illuminated_shape_deg = get_illuminated_shape("JUICE", self.target, time, self.angular_unit)
-        filtered_center_points = [t.center for t in tiles if t.polygon.overlaps(illuminated_shape_deg) or illuminated_shape_deg.contains(t.polygon)]
-        n = len(filtered_center_points)
+        filtered_center_points = [t.center for t in tiles if
+                                  t.polygon.overlaps(illuminated_shape_deg) or illuminated_shape_deg.contains(
+                                      t.polygon)]
+
+        # solve Traveling Salesman Problem for the center points
         distances = []
         for i, p in enumerate(filtered_center_points[:]):
             distances.append([])
             for j, q in enumerate(filtered_center_points[:]):
-                distances[i].append(np.sqrt((p[0]-q[0])**2 + (p[1]-q[1])**2))
+                distances[i].append(np.sqrt((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2))
         indices = solve_tsp(distances, optim_steps=10)
         sorted_center_points = [filtered_center_points[i] for i in indices]
-
 
         cm = CustomMosaic(self.fov_size, self.target, time, self.time_unit, self.angular_unit,
                           dwell_time_s * self.time_unit_conversions_from_sec[self.time_unit],
@@ -293,9 +312,7 @@ f'''JANUS MOSAIC ITERATIVE GENERATOR REPORT:
         return cm
 
 
-
-
-if __name__=='__main__':
+if __name__ == '__main__':
     MK_C32 = r"C:\Users\Marcel Stefko\Kernels\JUICE\mk\juice_crema_3_2_v151.tm"
     spy.furnsh(MK_C32)
 
@@ -308,8 +325,6 @@ if __name__=='__main__':
                                      no_of_filters=4,
                                      extra_margin=0.05,
                                      overlap=0.15)
-
-
 
     cm.plot()
     print(cm.generate_PTR(decimal_places=3))
@@ -337,6 +352,3 @@ if __name__=='__main__':
     print(dm.generate_PTR(decimal_places=3))
     dm.plot()
     """
-
-
-

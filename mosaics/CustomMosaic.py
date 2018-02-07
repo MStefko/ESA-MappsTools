@@ -1,19 +1,18 @@
 # coding=utf-8
-from matplotlib import pyplot as plt
 from datetime import datetime, timedelta
 from typing import List, Tuple
-import traceback
 
 import numpy as np
 import spiceypy as spy
 
 from mosaics.DiskMosaic import DiskMosaic
-from mosaics.misc import Rectangle, datetime2et, get_body_angular_diameter_rad, get_illuminated_shape
+from mosaics.misc import Rectangle
 
 
 class CustomMosaic:
+    """ Mosaic of a part of body's disk or a custom-defined sequence of coordinates. """
     allowed_time_units = {"sec": "seconds", "min": "minutes", "hour": "hours"}
-    allowed_angular_units = {"deg": 180/np.pi, "rad": 1.0, "arcMin": 3438, "arcSec": 206265}
+    allowed_angular_units = {"deg": 180 / np.pi, "rad": 1.0, "arcMin": 3438, "arcSec": 206265}
 
     def __init__(self, fov_size: Tuple[float, float],
                  target: str, start_time: datetime,
@@ -22,7 +21,6 @@ class CustomMosaic:
                  slew_time_per_unit_angle: float,
                  center_points: List[Tuple[float, float]]):
         """ Create a CustomMosaic
-
 
         :param fov_size: 2-tuple (x, y) containing rectangular FOV size
         :param target: Name of target body, e.g. "CALLISTO"
@@ -33,8 +31,6 @@ class CustomMosaic:
         :param slew_time_per_unit_angle: Speed at which the spacecraft can slew between points, accounting
             for acceleration and deceleration
         :param center_points: List of points at which to center images.
-        :param target_radius:
-        :param target_radius_with_margin:
         """
         if len(fov_size) != 2:
             raise TypeError("FOV size must be a tuple of length 2")
@@ -61,7 +57,7 @@ class CustomMosaic:
             raise ValueError(f"Slew time / angle must be positive: {slew_time_per_unit_angle}")
         self.slew_time_per_angle = slew_time_per_unit_angle
 
-        if len(center_points)<1:
+        if len(center_points) < 1:
             raise ValueError("At least one point required.")
         for cp in center_points:
             if len(cp) != 2:
@@ -71,25 +67,27 @@ class CustomMosaic:
     def _calculate_slew_to_next_point(self, point_no: int):
         if not isinstance(point_no, int):
             raise TypeError("point_no must be an int")
-        if point_no >= len(self.center_points)-1 or point_no < 0:
+        if point_no >= len(self.center_points) - 1 or point_no < 0:
             raise ValueError("Invalid point_no")
-        distance_sq = sum((x-y)**2 for (x,y) in
+        distance_sq = sum((x - y) ** 2 for (x, y) in
                           zip(self.center_points[point_no], self.center_points[point_no + 1]))
         return np.sqrt(distance_sq) * self.slew_time_per_angle
 
     def _generate_rectangles(self):
         """
 
-                :return: List of image Rectangles in order of acquisition
-                """
+        :return: List of image Rectangles in order of acquisition
+        """
         return [Rectangle(cp, self.fov_size) for cp in self.center_points]
 
     @property
     def rectangles(self) -> List[Rectangle]:
+        """ List of image Rectangles in order of acquisition """
         return self._generate_rectangles()
 
     @property
     def center_points(self) -> List[Tuple[float, float]]:
+        """ List of (x,y) image center points in order of acquisition. """
         return self._center_points
 
     def _calculate_end_time(self) -> datetime:
@@ -114,16 +112,16 @@ class CustomMosaic:
 
     @property
     def end_time(self) -> datetime:
+        """ End time of mosaic. """
         return self._calculate_end_time()
 
-
-    def generate_PTR(self, decimal_places = 3) -> str:
+    def generate_PTR(self, decimal_places=3) -> str:
         """ Generates a PTR request for MAPPS for this mosaic
 
         :param decimal_places: Number of max decimal places for values.
         :return: PTR request string
         """
-        slew_times = [self._calculate_slew_to_next_point(i) for i in range(len(self.center_points)-1)]
+        slew_times = [self._calculate_slew_to_next_point(i) for i in range(len(self.center_points) - 1)]
         # max nondecimal digits not including minus sign
         mnd = max([(len(f"{t:.0f}")) for t in (self.dwell_time, max(slew_times))])
 
@@ -139,17 +137,19 @@ class CustomMosaic:
                       f" {0.0: {f_length}.{decimal_places}}"
         deltaTimes += " </deltaTimes>"
 
-        xAngles =    f"<xAngles units='{self.angular_unit}'>    " + \
-                     "".join([3*f" {cp[0]: {f_length}.{decimal_places}}" for cp in self.center_points]) + \
-                     " </xAngles>"
+        xAngles = f"<xAngles units='{self.angular_unit}'>    " + \
+                  "".join([3 * f" {cp[0]: {f_length}.{decimal_places}}" for cp in self.center_points]) + \
+                  " </xAngles>"
 
-        xRates =     "<xRates units='deg/min'> " + f" {0.0:{f_length}.{decimal_places}}"*3*len(self.center_points) + " </xRates>"
+        xRates = "<xRates units='deg/min'> " + f" {0.0:{f_length}.{decimal_places}}" * 3 * len(
+            self.center_points) + " </xRates>"
 
-        yAngles =    f"<yAngles units='{self.angular_unit}'>    " + \
-                     "".join([3*f" {cp[1]: {f_length}.{decimal_places}}" for cp in self.center_points]) + \
-                     " </yAngles>"
+        yAngles = f"<yAngles units='{self.angular_unit}'>    " + \
+                  "".join([3 * f" {cp[1]: {f_length}.{decimal_places}}" for cp in self.center_points]) + \
+                  " </yAngles>"
 
-        yRates =     "<yRates units='deg/min'> " + f" {0.0: {f_length}.{decimal_places}}"*3*len(self.center_points) + " </yRates>"
+        yRates = "<yRates units='deg/min'> " + f" {0.0: {f_length}.{decimal_places}}" * 3 * len(
+            self.center_points) + " </yRates>"
 
         PTR = \
 f'''<block ref="OBS">
@@ -179,16 +179,30 @@ f'''<block ref="OBS">
 '''
         return PTR
 
+    # Quick hack to duplicate the DiskMosaic.plot() function here
     plot = DiskMosaic.plot
 
 
-
-if __name__=='__main__':
+if __name__ == '__main__':
     MK_C32 = r"C:\Users\Marcel Stefko\Kernels\JUICE\mk\juice_crema_3_2_v151.tm"
     spy.furnsh(MK_C32)
 
     start_time = datetime.strptime("2031-04-26T00:40:47", "%Y-%m-%dT%H:%M:%S")
-    angles = [(-0.40000000000000002, -3.4830000000000001), (-0.40000000000000002, -2.4510000000000001), (-0.40000000000000002, -1.419), (-0.40000000000000002, -0.38700000000000001), (-0.40000000000000002, 0.64500000000000002), (-0.40000000000000002, 1.677), (-0.40000000000000002, 2.7090000000000001), (-0.40000000000000002, 3.7410000000000001), (0.97600000000000009, 3.7410000000000001), (0.97600000000000009, 2.7090000000000001), (0.97600000000000009, 1.677), (0.97600000000000009, 0.64500000000000002), (0.97600000000000009, -0.38700000000000001), (0.97600000000000009, -1.419), (0.97600000000000009, -2.4510000000000001), (0.97600000000000009, -3.4830000000000001), (2.3520000000000003, -3.4830000000000001), (2.3520000000000003, -2.4510000000000001), (2.3520000000000003, -1.419), (2.3520000000000003, -0.38700000000000001), (2.3520000000000003, 0.64500000000000002), (2.3520000000000003, 1.677), (2.3520000000000003, 2.7090000000000001), (2.3520000000000003, 3.7410000000000001), (3.7280000000000006, 2.7090000000000001), (3.7280000000000006, 1.677), (3.7280000000000006, 0.64500000000000002), (3.7280000000000006, -0.38700000000000001), (3.7280000000000006, -1.419), (3.7280000000000006, -2.4510000000000001)]
+    angles = [(-0.40000000000000002, -3.4830000000000001), (-0.40000000000000002, -2.4510000000000001),
+              (-0.40000000000000002, -1.419), (-0.40000000000000002, -0.38700000000000001),
+              (-0.40000000000000002, 0.64500000000000002), (-0.40000000000000002, 1.677),
+              (-0.40000000000000002, 2.7090000000000001), (-0.40000000000000002, 3.7410000000000001),
+              (0.97600000000000009, 3.7410000000000001), (0.97600000000000009, 2.7090000000000001),
+              (0.97600000000000009, 1.677), (0.97600000000000009, 0.64500000000000002),
+              (0.97600000000000009, -0.38700000000000001), (0.97600000000000009, -1.419),
+              (0.97600000000000009, -2.4510000000000001), (0.97600000000000009, -3.4830000000000001),
+              (2.3520000000000003, -3.4830000000000001), (2.3520000000000003, -2.4510000000000001),
+              (2.3520000000000003, -1.419), (2.3520000000000003, -0.38700000000000001),
+              (2.3520000000000003, 0.64500000000000002), (2.3520000000000003, 1.677),
+              (2.3520000000000003, 2.7090000000000001), (2.3520000000000003, 3.7410000000000001),
+              (3.7280000000000006, 2.7090000000000001), (3.7280000000000006, 1.677),
+              (3.7280000000000006, 0.64500000000000002), (3.7280000000000006, -0.38700000000000001),
+              (3.7280000000000006, -1.419), (3.7280000000000006, -2.4510000000000001)]
 
     cm = CustomMosaic((1.72, 1.29), "CALLISTO", start_time, "min",
                       "deg", 0.5, 0.312634, angles)

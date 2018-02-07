@@ -1,4 +1,5 @@
 # coding=utf-8
+""" Tools for manipulation of mosaics and calculation of useful parameters. """
 from datetime import datetime, timedelta
 
 from matplotlib import pyplot as plt
@@ -8,7 +9,7 @@ from shapely.geometry import Polygon
 import spiceypy as spy
 import numpy as np
 
-conversions_from_rad = {"deg": 180/np.pi, "rad": 1.0, "arcMin": 3438, "arcSec": 206265}
+conversions_from_rad = {"deg": 180 / np.pi, "rad": 1.0, "arcMin": 3438, "arcSec": 206265}
 
 
 class Rectangle:
@@ -26,19 +27,19 @@ class Rectangle:
             raise ValueError(f"Lengths needs to be a tuple of length 2.")
         if mode == "CENTER":
             x_center, y_center = point
-            dx = lengths[0]/2
-            dy = lengths[1]/2
-            self._corners = [(x_center-dx, y_center-dy), (x_center-dx, y_center+dy),
-                      (x_center+dx, y_center+dy), (x_center+dx, y_center-dy)]
+            dx = lengths[0] / 2
+            dy = lengths[1] / 2
+            self._corners = [(x_center - dx, y_center - dy), (x_center - dx, y_center + dy),
+                             (x_center + dx, y_center + dy), (x_center + dx, y_center - dy)]
             self._polygon = Polygon(self._corners)
             self._center = point
         elif mode == "CORNER":
             x_edge, y_edge = point
             dx, dy = lengths
-            self._corners = [(x_edge, y_edge), (x_edge, y_edge+dy),
-                      (x_edge+dx, y_edge+dy), (x_edge+dx, y_edge)]
+            self._corners = [(x_edge, y_edge), (x_edge, y_edge + dy),
+                             (x_edge + dx, y_edge + dy), (x_edge + dx, y_edge)]
             self._polygon = Polygon(self._corners)
-            self._center = (x_edge + dx/2, y_edge + dx/2)
+            self._center = (x_edge + dx / 2, y_edge + dx / 2)
 
     def __str__(self):
         return f"Rectangle: {self.corners} "
@@ -70,6 +71,7 @@ class Rectangle:
 
 
 def datetime2et(time: datetime) -> float:
+    """ Convert datetime to SPICE ephemeris time."""
     return spy.str2et(time.isoformat())
 
 
@@ -113,7 +115,7 @@ def get_pixel_size_km(probe: str, body: str, time: datetime,
 
     et = datetime2et(time)
     nadir_vec = spy.subpnt("INTERCEPT/ELLIPSOID", body, et, f"IAU_{body}",
-                            "LT+S", probe)[2]
+                           "LT+S", probe)[2]
     nadir_dist = spy.vnorm(nadir_vec)
     half_angle_rad = 0.5 * fov_full_angle_deg * np.pi / 180
     fov_half_px = fov_full_px / 2
@@ -136,7 +138,7 @@ def get_max_dwell_time_s(max_smear: float, probe: str, body: str,
     :param fov_full_px: full pixel count of the same FOV dimension
     :return: Maximal possible dwell time in seconds
     """
-    if max_smear<=0.0:
+    if max_smear <= 0.0:
         raise ValueError("max_smear must be positive")
     pixel_size_km = get_pixel_size_km(probe, body, time, fov_full_angle_deg, fov_full_px)
     nadir_velocity_kps = get_nadir_point_surface_velocity_kps(probe, body, time)
@@ -191,19 +193,19 @@ def get_illuminated_shape(probe: str, body: str, time: datetime, angular_unit: s
 
     # the illuminated side of limb in our coordinate system is always on the right side, so we start
     # with +y direction (x_z_plane_normal_vector), and rotate clockwise for 180 degrees
-    step_limb = - np.pi/ncuts
+    step_limb = - np.pi / ncuts
     limb_points = spy.limbpt("TANGENT/ELLIPSOID", body, et, f"IAU_{body}", "LT+S",
                              "CENTER", probe, x_z_plane_normal_vector, step_limb, ncuts, 1.0, 1.0, ncuts)[3]
-    assert(len(limb_points==ncuts))
+    assert (len(limb_points == ncuts))
 
     # if we preserve the upwards direction of y axis, but look at the body from POV of the Sun,
     # the probe will always be on the left side. That means we start slicing again at +y direction,
     # but this time rotate counter-clockwise for 180 degrees, to get terminator points that are
     # actually visible from probe
-    step_terminator = np.pi/ncuts
+    step_terminator = np.pi / ncuts
     terminator_points = spy.termpt("UMBRAL/TANGENT/ELLIPSOID", "SUN", body, et, f"IAU_{body}", "LT+S",
                                    "CENTER", probe, x_z_plane_normal_vector, step_terminator, ncuts, 1.0, 1.0, ncuts)[3]
-    assert(len(terminator_points<=ncuts))
+    assert (len(terminator_points <= ncuts))
 
     # reverse the order of terminator points so we go
     # (limb top -> ... -> limb bottom -> terminator bottom -> ... -> terminator top)
@@ -216,16 +218,16 @@ def get_illuminated_shape(probe: str, body: str, time: datetime, angular_unit: s
     points_2d = []
     for p in points_3d:
         # x-coordinate of each point is the angle vector with the y-z plane (this also recognizes the sign)
-        x_rad = np.arcsin(spy.vdot(y_z_plane_normal_vector, p)/(spy.vnorm(y_z_plane_normal_vector)*spy.vnorm(p)))
+        x_rad = np.arcsin(spy.vdot(y_z_plane_normal_vector, p) / (spy.vnorm(y_z_plane_normal_vector) * spy.vnorm(p)))
         # similarly, y-coordinate is angle with x-z plane
-        y_rad = np.arcsin(spy.vdot(x_z_plane_normal_vector, p)/(spy.vnorm(x_z_plane_normal_vector)*spy.vnorm(p)))
+        y_rad = np.arcsin(spy.vdot(x_z_plane_normal_vector, p) / (spy.vnorm(x_z_plane_normal_vector) * spy.vnorm(p)))
         # convert the angular coordinate from radians to desired unit, and add to list
         points_2d.append((x_rad * conversion_factor, y_rad * conversion_factor))
     return Polygon(points_2d)
 
 
-if __name__=="__main__":
-    r = Rectangle( (0.0, 0.0), (1.0, 3.0))
+if __name__ == "__main__":
+    r = Rectangle((0.0, 0.0), (1.0, 3.0))
     print(f"Corners: {r.corners}")
     print(f"Polygon: {r.polygon}")
     print(f"Center: {r.center}")
@@ -237,8 +239,7 @@ if __name__=="__main__":
 
     poly = get_illuminated_shape("JUICE", "CALLISTO", start_time, "deg")
     from matplotlib import pyplot as plt
+
     plt.plot(*poly.exterior.xy)
     plt.axis('equal')
     plt.show()
-
-

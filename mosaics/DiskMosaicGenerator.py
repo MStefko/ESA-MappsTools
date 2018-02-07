@@ -1,3 +1,4 @@
+# coding=utf-8
 from datetime import datetime
 from typing import Tuple
 
@@ -8,6 +9,7 @@ from mosaics.misc import get_body_angular_diameter_rad
 
 
 class DiskMosaicGenerator:
+    """ Generator for DiskMosaics. """
     def __init__(self, fov_size: Tuple[float, float],
                  probe: str, target: str,
                  start_time: datetime,
@@ -46,9 +48,9 @@ class DiskMosaicGenerator:
             raise ValueError(f"Slew rate must be positive: {slew_rate}")
         self.slew_rate = slew_rate
 
-        #calculate angular size of target at start time
+        # calculate angular size of target at start time
         self.target_angular_diameter = get_body_angular_diameter_rad(self.probe, self.target, start_time) \
-                                       * DiskMosaic.allowed_angular_units[self.angular_unit]
+            * DiskMosaic.allowed_angular_units[self.angular_unit]
 
     def generate_symmetric_mosaic(self, margin: float = 0.2, min_overlap: float = 0.1):
         """
@@ -63,7 +65,6 @@ class DiskMosaicGenerator:
             raise ValueError("margin must be larger than -1.0")
         if min_overlap < 0.0 or min_overlap >= 1.0:
             raise ValueError("min_overlap must be in the interval <0.0, 1.0)")
-        # TODO: Unit test this important function using a mock object
         diameter_to_cover = (self.target_angular_diameter * (1.0 + margin))
         (points, starts, steps) = zip(*[self._optimize_steps_centered(
             diameter_to_cover, fov_width, min_overlap) for fov_width in self.fov_size])
@@ -93,7 +94,8 @@ class DiskMosaicGenerator:
             return (1, 0.0, 1.0)
         else:
             effective_fov = fov_width * (1 - min_overlap)
-            no_of_steps = int(np.math.ceil((diameter_to_cover - fov_width) / effective_fov - 0.00001)) # rounding error hack
+            no_of_steps = int(
+                np.math.ceil((diameter_to_cover - fov_width) / effective_fov - 0.00001))  # rounding error hack
             # case of odd amount of steps, we have even amount of points
             if no_of_steps % 2 == 1:
                 first_img_loc = (-diameter_to_cover / 2) + 0.5 * fov_width
@@ -107,14 +109,16 @@ class DiskMosaicGenerator:
                 step_size = (center_img_loc - edge_img_loc) / (no_of_steps / 2)
                 return (no_of_steps + 1, edge_img_loc, step_size)
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     import spiceypy as spy
+
     MK_C32 = r"C:\Users\Marcel Stefko\Kernels\JUICE\mk\juice_crema_3_2_v151.tm"
     spy.furnsh(MK_C32)
 
     start_time = datetime.strptime("2031-04-25T19:40:47", "%Y-%m-%dT%H:%M:%S")
     dmg = DiskMosaicGenerator((1.72, 1.29), "JUICE", "CALLISTO", start_time, "min",
-                              "deg", 2.0, 0.04*60)
+                              "deg", 2.0, 0.04 * 60)
     dm = dmg.generate_symmetric_mosaic(margin=0.1)
     print(dm.generate_PTR())
     dm.plot()

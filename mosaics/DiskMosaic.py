@@ -14,8 +14,9 @@ from mosaics.misc import Rectangle, get_body_angular_diameter_rad, get_illuminat
 
 
 class DiskMosaic:
+    """ Mosaic of a body's entire disk. """
     allowed_time_units = {"sec": "seconds", "min": "minutes", "hour": "hours"}
-    allowed_angular_units = {"deg": 180/np.pi, "rad": 1.0, "arcMin": 3438, "arcSec": 206265}
+    allowed_angular_units = {"deg": 180 / np.pi, "rad": 1.0, "arcMin": 3438, "arcSec": 206265}
 
     def __init__(self, fov_size: Tuple[float, float],
                  target: str, start_time: datetime,
@@ -26,7 +27,6 @@ class DiskMosaic:
                  delta: Tuple[float, float],
                  points: Tuple[int, int]):
         """ Create a DiskMosaic
-
 
         :param fov_size: 2-tuple (x, y) containing rectangular FOV size
         :param target: Name of target body, e.g. "CALLISTO"
@@ -90,7 +90,7 @@ class DiskMosaic:
         line_slews = x_points - 1
         point_slews_per_line = y_points - 1
         slew_time = line_slews * self.line_slew_time + \
-                    point_slews_per_line * x_points * self.point_slew_time
+            point_slews_per_line * x_points * self.point_slew_time
         dwell_time = self.dwell_time * (x_points * y_points)
         # Required delay from start time.
         initial_delay = timedelta(minutes=1)
@@ -106,6 +106,7 @@ class DiskMosaic:
 
     @property
     def end_time(self) -> datetime:
+        """ End time of mosaic. """
         return self._calculate_end_time()
 
     def _generate_rectangles(self) -> List[Rectangle]:
@@ -127,8 +128,8 @@ class DiskMosaic:
         for x in range(x_points):
             line_points = []
             for y in range(y_points):
-                line_points.append((x_start + x*x_delta,
-                                    y_start + y*y_delta))
+                line_points.append((x_start + x * x_delta,
+                                    y_start + y * y_delta))
             if x % 2:
                 line_points = line_points[::-1]
             center_points += line_points
@@ -136,13 +137,15 @@ class DiskMosaic:
 
     @property
     def rectangles(self) -> List[Rectangle]:
+        """ List of image Rectangles in order of acquisition """
         return self._generate_rectangles()
 
     @property
     def center_points(self) -> List[Tuple[float, float]]:
+        """ List of (x,y) image center points in order of acquisition. """
         return self._generate_center_points()
 
-    def generate_PTR(self, decimal_places = 3) -> str:
+    def generate_PTR(self, decimal_places=3) -> str:
         """ Generates a PTR request for MAPPS for this mosaic
 
         :param decimal_places: Number of max decimal places for values.
@@ -186,22 +189,23 @@ f'''<block ref="OBS">
         return PTR
 
     def plot(self, query_spice: bool = True):
+        """ Shows generated mosaic diagram. """
         plt.figure()
         for r in self.rectangles:
-            r.plot_to_ax(plt.gca(),'b')
-        plt.gca().plot(*zip(*self.center_points),'k')
-        plt.gca().plot(*zip(*self.center_points),'rx')
+            r.plot_to_ax(plt.gca(), 'b')
+        plt.gca().plot(*zip(*self.center_points), 'k')
+        plt.gca().plot(*zip(*self.center_points), 'rx')
         if query_spice:
             radius_start = DiskMosaic.allowed_angular_units[self.angular_unit] \
-                    * get_body_angular_diameter_rad("JUICE", self.target, self.start_time) / 2
-            circle_start = plt.Circle((0,0), radius=radius_start,
-                                color='#FF0000', fill=False, linewidth=2)
+                           * get_body_angular_diameter_rad("JUICE", self.target, self.start_time) / 2
+            circle_start = plt.Circle((0, 0), radius=radius_start,
+                                      color='#FF0000', fill=False, linewidth=2)
             plt.gca().add_artist(circle_start)
 
             radius_end = DiskMosaic.allowed_angular_units[self.angular_unit] \
-                    * get_body_angular_diameter_rad("JUICE", self.target, self.end_time) / 2
-            circle_end = plt.Circle((0,0), radius = radius_end,
-                                       color='#A00000', fill=False, linewidth=2, linestyle='-.')
+                * get_body_angular_diameter_rad("JUICE", self.target, self.end_time) / 2
+            circle_end = plt.Circle((0, 0), radius=radius_end,
+                                    color='#A00000', fill=False, linewidth=2, linestyle='-.')
             plt.gca().add_artist(circle_end)
 
             illuminated_shape_start = get_illuminated_shape("JUICE", self.target, self.start_time, self.angular_unit)
@@ -217,7 +221,7 @@ f'''<block ref="OBS">
         plt.show()
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     fov_size = (1.2, 1.7)
     point_slew_time = 1.75
     line_slew_time = 2.25
@@ -236,4 +240,3 @@ if __name__=="__main__":
                     dwell_time, point_slew_time, line_slew_time,
                     (-1.5, 1.5), (1.5, -1.5), (3, 3))
     dm.plot()
-
