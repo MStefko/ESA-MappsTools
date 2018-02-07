@@ -136,9 +136,10 @@ class CustomMosaic:
                       f" {self.dwell_time*0.5: {f_length}.{decimal_places}}" + \
                       f" {self.dwell_time*0.5: {f_length}.{decimal_places}}"
         deltaTimes += " </deltaTimes>"
-
+        # IT IS NECESSARY TO FLIP THE X-COORDINATE VALUES INTO NEGATIVES, BECAUSE THE JUICE FRAME
+        # X-AXIS POINTS TO THE LEFT, NOT TO THE RIGHT
         xAngles = f"<xAngles units='{self.angular_unit}'>    " + \
-                  "".join([3 * f" {cp[0]: {f_length}.{decimal_places}}" for cp in self.center_points]) + \
+                  "".join([3 * f" {-cp[0]: {f_length}.{decimal_places}}" for cp in self.center_points]) + \
                   " </xAngles>"
 
         xRates = "<xRates units='deg/min'> " + f" {0.0:{f_length}.{decimal_places}}" * 3 * len(
