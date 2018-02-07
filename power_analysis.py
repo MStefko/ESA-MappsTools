@@ -5,6 +5,7 @@
 """
 from typing import Tuple
 
+from datetime import datetime, timedelta
 from matplotlib import pyplot as plt
 import pandas as pd
 import numpy as np
@@ -14,6 +15,7 @@ import re
 
 class PowerConsumptionGraph:
     """Contains information about power consumption timeline during a specified flyby."""
+
     def __init__(self, name: str, CA_timestamp: str, sheet_path: str,
                  add_HAA: bool = True, power_limit_Wh: float = None) -> None:
         """ Creates a power consumption analysis graph from a MAPPS resources datapack.
@@ -46,7 +48,7 @@ class PowerConsumptionGraph:
             self._add_HAA_to_dataframe(df)
         self.data = df
 
-    def print_total_power_consumed(self) -> None:
+    def print_total_power_consumed(self) -> str:
         """ Prints the total consumed power during the flyby.
         """
         consumed = self.get_cumulative_power().values[-1]
@@ -54,8 +56,9 @@ class PowerConsumptionGraph:
         if self.power_limit_Wh is not None:
             message += f" ({100*consumed/self.power_limit_Wh:.1f}% of limit)."
         print(message)
+        return message
 
-    def print_individual_instrument_consumption(self) -> None:
+    def print_individual_instrument_consumption(self) -> str:
         """ Prints a list of individual instrument power consumptions, and the percentage
         of the total power consumption for each instrument.
         """
@@ -63,9 +66,10 @@ class PowerConsumptionGraph:
         message = "Consumption by instrument:\n"
         df = self._get_only_instrument_dataframe()
         for inst in df:
-            consumed = df[inst].sum()/(3600.0/self.time_step_s)
+            consumed = df[inst].sum() / (3600.0 / self.time_step_s)
             message += f" - {inst: <5}: {consumed: 7.1f} Wh - {100*consumed/total:4.1f}%\n"
         print(message)
+        return message
 
     def plot(self) -> plt.Figure:
         """ Generate stacked power consumption plot.
@@ -91,7 +95,7 @@ class PowerConsumptionGraph:
         ax_right.set_ylabel('Total consumed power [Wh]')
         ax_right.set_xlim(X_LIMIT_H)
         ax_right.plot(cumulative_power.index, cumulative_power,
-                 label='CONSUMED', c='g', lw=3)
+                      label='CONSUMED', c='g', lw=3)
         if self.power_limit_Wh is not None:
             ax_right.plot(X_LIMIT_H, [self.power_limit_Wh] * 2, label='LIMIT', c='r', lw=3)
 
@@ -135,7 +139,7 @@ class PowerConsumptionGraph:
         :return: Cumulative power consumption
         """
         df = self._get_only_instrument_dataframe()
-        return df.sum(axis=1).cumsum() / (3600.0/self.time_step_s)
+        return df.sum(axis=1).cumsum() / (3600.0 / self.time_step_s)
 
     @staticmethod
     def _add_HAA_to_dataframe(df: pd.DataFrame):
@@ -174,9 +178,7 @@ class PowerConsumptionGraph:
         :return: Delta time from CA to the given timestamp in hours.
         """
         T = iso8601.parse_date(UTC_timestamp)
-        D = abs(self.CA - T)
-        h = D.days*24 + D.seconds/3600
-        return h if T >= self.CA else -h
+        return (T - self.CA).total_seconds() / 3600.0
 
     @staticmethod
     def _strip_power_from_column_label(column_label: str) -> str:
@@ -185,6 +187,7 @@ class PowerConsumptionGraph:
 
 class DataConsumptionGraph:
     """Contains information about data consumption timeline during a specified flyby."""
+
     def __init__(self, name: str, CA_timestamp: str, sheet_path: str,
                  add_HAA: bool = True, data_limit_Mbits: float = None) -> None:
         """ Creates a powerdata consumption analysis graph from a MAPPS resources datapack.
@@ -196,7 +199,7 @@ class DataConsumptionGraph:
         :param data_limit_Mbits: limit on total data acquired during flyby
         """
         self.name = name
-        self.CA = iso8601.parse_date(CA_timestamp)
+        self.CA: datetime = iso8601.parse_date(CA_timestamp)
         self.time_step_s = self._parse_time_step_from_sheet(sheet_path)
         self.data_limit_Mbits = data_limit_Mbits
 
@@ -225,7 +228,7 @@ class DataConsumptionGraph:
     def _lstrip_characters(column_label: str, no_of_characters) -> str:
         return column_label[no_of_characters:]
 
-    def print_total_data_acquired(self) -> None:
+    def print_total_data_acquired(self) -> str:
         """ Prints the total consumed power during the flyby.
         """
         consumed = self.get_cumulative_data().values[-1]
@@ -233,8 +236,9 @@ class DataConsumptionGraph:
         if self.data_limit_Mbits is not None:
             message += f" ({100*consumed/self.data_limit_Mbits:.1f}% of limit)."
         print(message)
+        return message
 
-    def print_individual_instrument_data(self) -> None:
+    def print_individual_instrument_data(self) -> str:
         """ Prints a list of individual instrument data consumptions, and the percentage
         of the total data consumption for each instrument.
         """
@@ -245,6 +249,7 @@ class DataConsumptionGraph:
             acquired = df[inst].values[-1]
             message += f" - {inst: <5}: {acquired: 7.1f} Mbits - {100*acquired/total:4.1f}%\n"
         print(message)
+        return message
 
     def plot(self) -> plt.Figure:
         """ Generate stacked power consumption plot.
@@ -262,7 +267,7 @@ class DataConsumptionGraph:
 
         cumulative_data = self.get_cumulative_data()
         ax.plot(cumulative_data.index, cumulative_data,
-                 label='MEMORY', c='k', lw=3)
+                label='MEMORY', c='k', lw=3)
         if self.data_limit_Mbits is not None:
             ax.plot([-10.0, 10.0], [self.data_limit_Mbits] * 2, label='LIMIT', c='r', lw=3)
         ax.legend(handles[::-1], labels[::-1], loc='upper left')
@@ -300,7 +305,7 @@ class DataConsumptionGraph:
         for time in haa.index:
             haa[time] = get_HAA_data_rate_for_time_from_CA(time)
         self.data_rate['HAA'] = haa
-        self.data_accum['HAA'] = haa.cumsum()*self.time_step_s/1000.0
+        self.data_accum['HAA'] = haa.cumsum() * self.time_step_s / 1000.0
 
     @staticmethod
     def _parse_time_step_from_sheet(sheet_path: str) -> float:
@@ -323,9 +328,7 @@ class DataConsumptionGraph:
         :return: Delta time from CA to the given timestamp in hours.
         """
         T = iso8601.parse_date(UTC_timestamp)
-        D = abs(self.CA - T)
-        h = D.days*24 + D.seconds/3600
-        return h if T >= self.CA else -h
+        return (T - self.CA).total_seconds() / 3600.0
 
 
 if __name__ == '__main__':
@@ -333,8 +336,8 @@ if __name__ == '__main__':
                                 r"tests\14c6_test_attitude_and_data.csv",
                                 power_limit_Wh=4065.0)
     dcg = DataConsumptionGraph("14C6", '2031-04-25T22:40:47',
-                                r"tests\14c6_test_attitude_and_data.csv",
-                                data_limit_Mbits=30000.0)
+                               r"tests\14c6_test_attitude_and_data.csv",
+                               data_limit_Mbits=30000.0)
 
     pcg.print_total_power_consumed()
     pcg.print_individual_instrument_consumption()
