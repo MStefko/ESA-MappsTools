@@ -72,6 +72,8 @@ class Rectangle:
 
 def datetime2et(time: datetime) -> float:
     """ Convert datetime to SPICE ephemeris time."""
+    if isinstance(time, float):
+        return time
     return spy.str2et(time.isoformat())
 
 
