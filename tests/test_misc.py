@@ -5,8 +5,7 @@ from datetime import datetime
 import numpy as np
 
 from mosaics.misc import get_nadir_point_surface_velocity_kps, \
-     get_pixel_size_km, get_max_dwell_time_s, get_body_angular_diameter_rad
-
+    get_pixel_size_km, get_max_dwell_time_s, get_body_angular_diameter_rad, datetime2et
 
 valid_time = datetime.strptime("2031-04-26T00:40:47", "%Y-%m-%dT%H:%M:%S")
 
@@ -63,3 +62,17 @@ class TestMisc(TestCase):
                 self.assertAlmostEqual(get_body_angular_diameter_rad("JUICE", "CALLISTO", valid_time),
                                        10.9824*np.pi/180, places=4)
                 mock_datetime2et.assert_called_with(valid_time)
+
+
+    def test_datetime2et(self):
+        with self.assertRaises(TypeError, msg="Fail on None input"):
+            datetime2et(None)
+        with self.assertRaises(TypeError, msg="Fail on int input"):
+            datetime2et(1)
+        # pass float input through unmodified
+        self.assertEqual(datetime2et(3.14), 3.14)
+        self.assertEqual(datetime2et(-3.14), -3.14)
+        # method calls spy.str2et
+        with patch('mosaics.misc.spy.str2et') as mock:
+            datetime2et(valid_time)
+            mock.assert_called_with(valid_time.isoformat())

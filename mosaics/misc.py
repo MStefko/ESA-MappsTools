@@ -33,6 +33,7 @@ class Rectangle:
                              (x_center + dx, y_center + dy), (x_center + dx, y_center - dy)]
             self._polygon = Polygon(self._corners)
             self._center = point
+            self._size = lengths
         elif mode == "CORNER":
             x_edge, y_edge = point
             dx, dy = lengths
@@ -40,6 +41,7 @@ class Rectangle:
                              (x_edge + dx, y_edge + dy), (x_edge + dx, y_edge)]
             self._polygon = Polygon(self._corners)
             self._center = (x_edge + dx / 2, y_edge + dx / 2)
+            self._size = lengths
 
     def __str__(self):
         return f"Rectangle: {self.corners} "
@@ -59,6 +61,11 @@ class Rectangle:
         """ Center (x,y) coordinates of the rectangle. """
         return self._center
 
+    @property
+    def size(self) -> Tuple[float, float]:
+        """ Size (x,y) of the rectangle. """
+        return self._size
+
     def plot_to_ax(self, ax: plt.Axes, *args, **kwargs) -> None:
         """ Plots the rectangle to desired axis.
 
@@ -74,6 +81,8 @@ def datetime2et(time: datetime) -> float:
     """ Convert datetime to SPICE ephemeris time."""
     if isinstance(time, float):
         return time
+    if not isinstance(time, datetime):
+        raise TypeError("Time must be a float or a datetime object.")
     return spy.str2et(time.isoformat())
 
 
