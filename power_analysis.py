@@ -79,7 +79,7 @@ class PowerConsumptionGraph:
         # Create pandas stacked plot and format the axis limits
         ax_left = plt.gca()
 
-        ax_right = ax_left.twinx()
+        ax_right: plt.Axes = ax_left.twinx()
         self._get_only_instrument_dataframe().plot.area(stacked=True, ax=ax_left)
         ax_left.set_xlim(X_LIMIT_H)
         # Plot the black power requirement line
@@ -96,6 +96,7 @@ class PowerConsumptionGraph:
         ax_right.set_xlim(X_LIMIT_H)
         ax_right.plot(cumulative_power.index, cumulative_power,
                       label='CONSUMED', c='g', lw=3)
+        ax_right.set_ylim(bottom=0.0)
         if self.power_limit_Wh is not None:
             ax_right.plot(X_LIMIT_H, [self.power_limit_Wh] * 2, label='LIMIT', c='r', lw=3)
 
