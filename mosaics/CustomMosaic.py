@@ -11,7 +11,7 @@ from mosaics.misc import Rectangle
 
 class CustomMosaic:
     """ Mosaic of a part of body's disk or a custom-defined sequence of coordinates. """
-    allowed_time_units = {"sec": "seconds", "min": "minutes", "hour": "hours"}
+    time_unit_names = {"sec": "seconds", "min": "minutes", "hour": "hours"}
     allowed_angular_units = {"deg": 180 / np.pi, "rad": 1.0, "arcMin": 3438, "arcSec": 206265}
 
     def __init__(self, fov_size: Tuple[float, float],
@@ -44,8 +44,8 @@ class CustomMosaic:
         if not isinstance(start_time, datetime):
             raise TypeError("Start time must be a datetime object.")
         self.start_time = start_time
-        if time_unit not in CustomMosaic.allowed_time_units:
-            raise ValueError(f"Time unit must be one of following: {CustomMosaic.allowed_time_units}")
+        if time_unit not in CustomMosaic.time_unit_names:
+            raise ValueError(f"Time unit must be one of following: {CustomMosaic.time_unit_names}")
         self.time_unit = time_unit
         if angular_unit not in CustomMosaic.allowed_angular_units:
             raise ValueError(f"Angular unit must be one of following: {CustomMosaic.allowed_angular_units}")
@@ -105,7 +105,7 @@ class CustomMosaic:
         # Next line picks the correct keyword argument for timedelta object so that we have
         # correct units. (E.g. if self.time_unit is "min", the keyword argument has to be
         # "minutes").
-        timedelta_kwarg = {CustomMosaic.allowed_time_units[self.time_unit]: slew_time + dwell_time}
+        timedelta_kwarg = {CustomMosaic.time_unit_names[self.time_unit]: slew_time + dwell_time}
         delay = initial_delay + timedelta(**timedelta_kwarg) + final_delay
         end_time = self.start_time + delay
         return end_time.replace(microsecond=0)

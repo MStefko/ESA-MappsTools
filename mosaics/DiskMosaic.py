@@ -11,12 +11,11 @@ import numpy as np
 import spiceypy as spy
 
 from mosaics.misc import Rectangle, get_body_angular_diameter_rad, get_illuminated_shape
-
+from mosaics.units import angular_units, time_units, convertAngleFromTo
 
 class DiskMosaic:
     """ Mosaic of a body's entire disk. """
-    allowed_time_units = {"sec": "seconds", "min": "minutes", "hour": "hours"}
-    allowed_angular_units = {"deg": 180 / np.pi, "rad": 1.0, "arcMin": 3438, "arcSec": 206265}
+    time_unit_names = {"sec": "seconds", "min": "minutes", "hour": "hours"}
 
     def __init__(self, fov_size: Tuple[float, float],
                  target: str, start_time: datetime,
@@ -52,11 +51,11 @@ class DiskMosaic:
         if not isinstance(start_time, datetime):
             raise TypeError("Start time must be a datetime object.")
         self.start_time = start_time
-        if time_unit not in DiskMosaic.allowed_time_units:
-            raise ValueError(f"Time unit must be one of following: {DiskMosaic.allowed_time_units}")
+        if time_unit not in time_units:
+            raise ValueError(f"Time unit must be one of following: {time_units}")
         self.time_unit = time_unit
-        if angular_unit not in DiskMosaic.allowed_angular_units:
-            raise ValueError(f"Angular unit must be one of following: {DiskMosaic.allowed_angular_units}")
+        if angular_unit not in angular_units:
+            raise ValueError(f"Angular unit must be one of following: {angular_units}")
         self.angular_unit = angular_unit
         if dwell_time < 0.0:
             raise ValueError(f"Dwell time must be non-negative: {dwell_time}")
@@ -99,7 +98,7 @@ class DiskMosaic:
         # Next line picks the correct keyword argument for timedelta object so that we have
         # correct units. (E.g. if self.time_unit is "min", the keyword argument has to be
         # "minutes").
-        timedelta_kwarg = {DiskMosaic.allowed_time_units[self.time_unit]: slew_time + dwell_time}
+        timedelta_kwarg = {DiskMosaic.time_unit_names[self.time_unit]: slew_time + dwell_time}
         delay = initial_delay + timedelta(**timedelta_kwarg) + final_delay
         end_time = self.start_time + delay
         return end_time.replace(microsecond=0)
@@ -196,14 +195,14 @@ f'''<block ref="OBS">
         plt.gca().plot(*zip(*self.center_points), 'k')
         plt.gca().plot(*zip(*self.center_points), 'rx')
         if query_spice:
-            radius_start = DiskMosaic.allowed_angular_units[self.angular_unit] \
-                           * get_body_angular_diameter_rad("JUICE", self.target, self.start_time) / 2
+            radius_start = convertAngleFromTo(get_body_angular_diameter_rad("JUICE", self.target, self.start_time) / 2,
+                                              "rad", self.angular_unit)
             circle_start = plt.Circle((0, 0), radius=radius_start,
                                       color='#FF0000', fill=False, linewidth=2)
             plt.gca().add_artist(circle_start)
 
-            radius_end = DiskMosaic.allowed_angular_units[self.angular_unit] \
-                * get_body_angular_diameter_rad("JUICE", self.target, self.end_time) / 2
+            radius_end = convertAngleFromTo(get_body_angular_diameter_rad("JUICE", self.target, self.end_time) / 2,
+                                            "rad", self.angular_unit)
             circle_end = plt.Circle((0, 0), radius=radius_end,
                                     color='#A00000', fill=False, linewidth=2, linestyle='-.')
             plt.gca().add_artist(circle_end)

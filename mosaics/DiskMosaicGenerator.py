@@ -6,6 +6,7 @@ import numpy as np
 
 from mosaics.DiskMosaic import DiskMosaic
 from mosaics.misc import get_body_angular_diameter_rad
+from mosaics.units import angular_units, time_units, convertAngleFromTo
 
 
 class DiskMosaicGenerator:
@@ -35,11 +36,11 @@ class DiskMosaicGenerator:
         self.target = target
 
         self.start_time = start_time
-        if time_unit not in DiskMosaic.allowed_time_units:
-            raise ValueError(f"Time unit must be one of following: {DiskMosaic.allowed_time_units}")
+        if time_unit not in time_units:
+            raise ValueError(f"Time unit must be one of following: {time_units}")
         self.time_unit = time_unit
-        if angular_unit not in DiskMosaic.allowed_angular_units:
-            raise ValueError(f"Angular unit must be one of following: {DiskMosaic.allowed_angular_units}")
+        if angular_unit not in angular_units:
+            raise ValueError(f"Angular unit must be one of following: {angular_units}")
         self.angular_unit = angular_unit
         if dwell_time < 0.0:
             raise ValueError(f"Dwell time must be non-negative: {dwell_time}")
@@ -49,8 +50,8 @@ class DiskMosaicGenerator:
         self.slew_rate = slew_rate
 
         # calculate angular size of target at start time
-        self.target_angular_diameter = get_body_angular_diameter_rad(self.probe, self.target, start_time) \
-            * DiskMosaic.allowed_angular_units[self.angular_unit]
+        self.target_angular_diameter = convertAngleFromTo(get_body_angular_diameter_rad(self.probe, self.target, start_time),
+                                                          "rad", self.angular_unit)
 
     def generate_symmetric_mosaic(self, margin: float = 0.2, min_overlap: float = 0.1):
         """

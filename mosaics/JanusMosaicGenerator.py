@@ -1,11 +1,13 @@
 # coding=utf-8
 from datetime import datetime, timedelta
+from typing import Tuple
 
 from mosaics.CustomMosaic import CustomMosaic
 from mosaics.DiskMosaic import DiskMosaic
 from mosaics.DiskMosaicGenerator import DiskMosaicGenerator
 from mosaics.misc import get_max_dwell_time_s, get_body_angular_diameter_rad, get_illuminated_shape
 from mosaics.tsp_solver import solve_tsp
+from mosaics.units import angular_units, time_units, convertAngleFromTo, convertTimeFromTo
 import numpy as np
 import spiceypy as spy
 
@@ -19,9 +21,6 @@ class JanusMosaicGenerator:
     FILTER_SWITCH_DURATION_SECONDS = 2.5
     JANUS_max_Mbits_per_image = JANUS_FOV_RES[0] * JANUS_FOV_RES[1] * 14 / 1_000_000
 
-    time_unit_conversions_from_sec = {"sec": 1.0, "min": 1 / 60.0, "hour": 1 / 3600}
-    angular_unit_conversions_from_deg = {"deg": 1.0, "rad": np.pi / 180, "arcMin": 3438 * np.pi / 180,
-                                         "arcSec": 206265 * np.pi / 180}
 
     def __init__(self, target: str, time_unit: str = "min", angular_unit: str = "deg"):
         """ Creates a JanusMosaicGenerator
@@ -31,20 +30,18 @@ class JanusMosaicGenerator:
         :param angular_unit: Unit for angular values - "deg", "rad", "arcMin" or "arcSec"
         """
         self.target = target
-        if time_unit not in DiskMosaic.allowed_time_units:
-            raise ValueError(f"Time unit must be one of following: {DiskMosaic.allowed_time_units}")
+        if time_unit not in time_units:
+            raise ValueError(f"Time unit must be one of following: {time_units}")
         self.time_unit = time_unit
-        if angular_unit not in DiskMosaic.allowed_angular_units:
-            raise ValueError(f"Angular unit must be one of following: {DiskMosaic.allowed_angular_units}")
+        if angular_unit not in angular_units:
+            raise ValueError(f"Angular unit must be one of following: {angular_units}")
         self.angular_unit = angular_unit
 
         # Convert JANUS FOV size from radians to required angular unit
-        self.fov_size = tuple(
-            v_rad * self.angular_unit_conversions_from_deg[angular_unit] for v_rad in self.JANUS_FOV_SIZE_DEG)
+        self.fov_size: Tuple[float, float] = tuple(
+            convertAngleFromTo(v_deg, "deg", self.angular_unit) for v_deg in self.JANUS_FOV_SIZE_DEG)
 
-        self.slew_rate_in_required_units = self.JUICE_SLEW_RATE_DEG_PER_SEC \
-                                      * self.angular_unit_conversions_from_deg[self.angular_unit] \
-                                      / self.time_unit_conversions_from_sec[self.time_unit]
+        self.slew_rate_in_required_units = convertTimeFromTo(convertAngleFromTo(self.JUICE_SLEW_RATE_DEG_PER_SEC, "deg", self.angular_unit), self.time_unit, "sec")
 
 
     def _get_max_dwell_time_s(self, max_smear: float, time: datetime) -> float:
@@ -86,7 +83,7 @@ class JanusMosaicGenerator:
             self.FILTER_SWITCH_DURATION_SECONDS * (no_of_filters - 1)
 
         dmg = DiskMosaicGenerator(self.fov_size, "JUICE", self.target, time, self.time_unit,
-                                  self.angular_unit, dwell_time_s * self.time_unit_conversions_from_sec[self.time_unit],
+                                  self.angular_unit, convertTimeFromTo(dwell_time_s, "sec", self.time_unit),
                                   self.slew_rate_in_required_units)
 
         overlap = 0.1
@@ -101,7 +98,7 @@ f'''JANUS MOSAIC GENERATOR REPORT:
  No of filters: {no_of_filters}
  Max smear: {max_smear} px
  Stabilization time: {stabilization_time_s:.3f} s
- {self.probe} slew rate: {slew_rate_in_required_units:.3f} {self.angular_unit} / {self.time_unit}
+ {self.probe} slew rate: {self.slew_rate_in_required_units:.3f} {self.angular_unit} / {self.time_unit}
  Start time: {dm.start_time.isoformat()}
  End time:   {dm.end_time.isoformat()}
  Duration: {duration} 
@@ -205,7 +202,7 @@ f'''Iteration no. {i} out of {n_iterations}
 
             dmg = DiskMosaicGenerator(self.fov_size, "JUICE", self.target, time, self.time_unit,
                                       self.angular_unit,
-                                      dwell_time_s * self.time_unit_conversions_from_sec[self.time_unit],
+                                      convertTimeFromTo(dwell_time_s, "sec", self.time_unit),
                                       self.slew_rate_in_required_units)
             dm = dmg.generate_symmetric_mosaic(margin=margin, min_overlap=overlap)
 
@@ -279,9 +276,6 @@ f'''JANUS MOSAIC ITERATIVE GENERATOR REPORT:
             raise ValueError("max_smear must be positive")
         if no_of_filters < 1:
             raise ValueError("no_of_filters must be at least 1")
-        slew_rate_in_required_units = self.JUICE_SLEW_RATE_DEG_PER_SEC \
-            * self.angular_unit_conversions_from_deg[self.angular_unit] \
-            / self.time_unit_conversions_from_sec[self.time_unit]
 
         # check highest possible exposure time based on smear
         exposure_times_s = [self._get_max_dwell_time_s(max_smear, time + timedelta(minutes=m)) for m in
@@ -297,8 +291,8 @@ f'''JANUS MOSAIC ITERATIVE GENERATOR REPORT:
         margin = (ratio - 1 if ratio > 1 else 0.0) + extra_margin
 
         dmg = DiskMosaicGenerator(self.fov_size, "JUICE", self.target, time, self.time_unit,
-                                  self.angular_unit, dwell_time_s * self.time_unit_conversions_from_sec[self.time_unit],
-                                  slew_rate_in_required_units)
+                                  self.angular_unit, convertTimeFromTo(dwell_time_s, "sec", self.time_unit),
+                                  self.slew_rate_in_required_units)
         dm = dmg.generate_symmetric_mosaic(margin=margin, min_overlap=overlap)
 
         tiles = dm.rectangles
@@ -317,8 +311,8 @@ f'''JANUS MOSAIC ITERATIVE GENERATOR REPORT:
         sorted_center_points = [filtered_center_points[i] for i in indices]
 
         cm = CustomMosaic(self.fov_size, self.target, time, self.time_unit, self.angular_unit,
-                          dwell_time_s * self.time_unit_conversions_from_sec[self.time_unit],
-                          1.0/slew_rate_in_required_units, sorted_center_points)
+                          convertTimeFromTo(dwell_time_s, "sec", self.time_unit),
+                          1.0/self.slew_rate_in_required_units, sorted_center_points)
 
         duration = cm.end_time - cm.start_time
         image_count = no_of_filters * len(cm.center_points)
@@ -328,7 +322,7 @@ f'''JANUS SUNSIDE MOSAIC GENERATOR REPORT:
  No of filters: {no_of_filters}
  Max smear: {max_smear} px
  Stabilization time: {stabilization_time_s:.3f} s
- {self.probe} slew rate: {slew_rate_in_required_units:.3f} {self.angular_unit} / {self.time_unit}
+ {self.probe} slew rate: {self.slew_rate_in_required_units:.3f} {self.angular_unit} / {self.time_unit}
  Start time: {cm.start_time.isoformat()}
  End time:   {cm.end_time.isoformat()}
  Duration: {duration} 

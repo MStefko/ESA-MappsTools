@@ -12,14 +12,14 @@ import spiceypy as spy
 
 from mosaics.DiskMosaic import DiskMosaic
 from mosaics.misc import Rectangle, get_body_angular_diameter_rad, get_illuminated_shape
+from mosaics.units import angular_units, time_units, convertAngleFromTo
 
 
 class Scan:
     """ Observation in which a slit oriented along x-axis slews with a certain angular rate in the y direction.
 
     Number of slew lines is optional. """
-    allowed_time_units = {"sec": "seconds", "min": "minutes", "hour": "hours"}
-    allowed_angular_units = {"deg": 180 / np.pi, "rad": 1.0, "arcMin": 3438, "arcSec": 206265}
+    time_unit_names = {"sec": "seconds", "min": "minutes", "hour": "hours"}
 
     def __init__(self, fov_width: float,
                  target: str, start_time: datetime,
@@ -52,11 +52,11 @@ class Scan:
         if not isinstance(start_time, datetime):
             raise TypeError("Start time must be a datetime object.")
         self.start_time = start_time
-        if time_unit not in Scan.allowed_time_units:
-            raise ValueError(f"Time unit must be one of following: {Scan.allowed_time_units}")
+        if time_unit not in time_units:
+            raise ValueError(f"Time unit must be one of following: {time_units}")
         self.time_unit = time_unit
-        if angular_unit not in Scan.allowed_angular_units:
-            raise ValueError(f"Angular unit must be one of following: {Scan.allowed_angular_units}")
+        if angular_unit not in angular_units:
+            raise ValueError(f"Angular unit must be one of following: {angular_units}")
         self.angular_unit = angular_unit
         if scan_slew_rate <= 0.0:
             raise ValueError(f"Slew rate of the scan must be positive: {scan_slew_rate}")
@@ -95,7 +95,7 @@ class Scan:
         # Next line picks the correct keyword argument for timedelta object so that we have
         # correct units. (E.g. if self.time_unit is "min", the keyword argument has to be
         # "minutes").
-        timedelta_kwarg = {Scan.allowed_time_units[self.time_unit]: scan_time}
+        timedelta_kwarg = {Scan.time_unit_names[self.time_unit]: scan_time}
         delay = initial_delay + timedelta(**timedelta_kwarg) + final_delay
         end_time = self.start_time + delay
         return end_time.replace(microsecond=0)
@@ -143,7 +143,7 @@ class Scan:
         x_start, y_start = self.start
         x_delta, y_delta = self.delta
         # compute the scan start_time = 10 seconds + borderSlewTime
-        timedelta_kwarg = {Scan.allowed_time_units[self.time_unit]: self.border_slew_time}
+        timedelta_kwarg = {Scan.time_unit_names[self.time_unit]: self.border_slew_time}
         start_time_timedelta = timedelta(seconds=10) + timedelta(**timedelta_kwarg)
         PTR = \
 f'''<block ref="OBS">
@@ -197,14 +197,14 @@ f'''<block ref="OBS">
         plt.gca().plot(*zip(*traj_points), 'k', linewidth=2, linestyle='dashed')
         plt.gca().plot(*zip(*traj_points), 'rx')
         if query_spice:
-            radius_start = DiskMosaic.allowed_angular_units[self.angular_unit] \
-                           * get_body_angular_diameter_rad("JUICE", self.target, self.start_time) / 2
+            radius_start = convertAngleFromTo(get_body_angular_diameter_rad("JUICE", self.target, self.start_time) / 2,
+                                              "rad", self.angular_unit)
             circle_start = plt.Circle((0, 0), radius=radius_start,
                                       color='#FF0000', fill=False, linewidth=2)
             plt.gca().add_artist(circle_start)
 
-            radius_end = DiskMosaic.allowed_angular_units[self.angular_unit] \
-                * get_body_angular_diameter_rad("JUICE", self.target, self.end_time) / 2
+            radius_end = convertAngleFromTo(get_body_angular_diameter_rad("JUICE", self.target, self.end_time) / 2,
+                                            "rad", self.angular_unit)
             circle_end = plt.Circle((0, 0), radius=radius_end,
                                     color='#A00000', fill=False, linewidth=2, linestyle='-.')
             plt.gca().add_artist(circle_end)

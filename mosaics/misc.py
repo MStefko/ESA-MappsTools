@@ -9,8 +9,7 @@ from shapely.geometry import Polygon
 import spiceypy as spy
 import numpy as np
 
-conversions_from_rad = {"deg": 180 / np.pi, "rad": 1.0, "arcMin": 3438, "arcSec": 206265}
-
+from mosaics.units import convertAngleFromTo, angular_units
 
 class Rectangle:
     """ Simple non-rotatable rectangle which serves as representation of FOV. """
@@ -185,7 +184,7 @@ def get_illuminated_shape(probe: str, body: str, time: datetime, angular_unit: s
     :return: Polygon marking the illuminated part of body as viewed from probe, centered on the nadir
              point. The x-direction points towards the Sun.
     """
-    if angular_unit not in conversions_from_rad:
+    if angular_unit not in angular_units:
         raise ValueError(f"Unknown angular_unit: '{angular_unit}'. Allowed units: {conversions_from_rad.keys()}")
 
     et = datetime2et(time)
@@ -223,8 +222,7 @@ def get_illuminated_shape(probe: str, body: str, time: datetime, angular_unit: s
     # these vectors emanate from probe towards the body limb and terminator
     points_3d = list(limb_points) + list(reversed(terminator_points))
 
-    # convert the points to appropriate units from radians
-    conversion_factor = conversions_from_rad[angular_unit]
+
     # project the points from IAU body-fixed 3d frame, to our probe POV 2d frame
     points_2d = []
     for p in points_3d:
@@ -233,7 +231,8 @@ def get_illuminated_shape(probe: str, body: str, time: datetime, angular_unit: s
         # similarly, y-coordinate is angle with x-z plane
         y_rad = np.arcsin(spy.vdot(x_z_plane_normal_vector, p) / (spy.vnorm(x_z_plane_normal_vector) * spy.vnorm(p)))
         # convert the angular coordinate from radians to desired unit, and add to list
-        points_2d.append((x_rad * conversion_factor, y_rad * conversion_factor))
+        points_2d.append((convertAngleFromTo(x_rad, "rad", angular_unit),
+                          convertAngleFromTo(y_rad, "rad", angular_unit)))
     return Polygon(points_2d)
 
 
