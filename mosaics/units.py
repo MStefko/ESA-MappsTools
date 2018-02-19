@@ -23,9 +23,11 @@ def convertTimeFromTo(value: float, unit_from: str, unit_to: str) -> float:
         raise ValueError(f"{unit_from} is not a valid unit! Valid units are: {time_units}")
     if unit_to not in time_units:
         raise ValueError(f"{unit_to} is not a valid unit! Valid units are: {time_units}")
-    if value < 0.0:
-        raise ValueError(f"Time value must be non-negative: {value}")
-
+    if not isinstance(value, (float, int)):
+        raise TypeError(f"Time value must be a real number.")
+    # if units match, return unmodified
+    if unit_from == unit_to:
+        return value
     value_in_sec = value * time_conversions_to_sec[unit_from]
     value_output = value_in_sec * time_conversions_from_sec[unit_to]
     return value_output
@@ -43,9 +45,11 @@ def convertAngleFromTo(value: float, unit_from: str, unit_to: str) -> float:
         raise ValueError(f"{unit_from} is not a valid unit! Valid units are: {angular_units}")
     if unit_to not in angular_units:
         raise ValueError(f"{unit_to} is not a valid unit! Valid units are: {angular_units}")
-    if not isinstance(value, float):
-        raise TypeError(f"Angular value must be a float.")
-
+    if not isinstance(value, (float, int)):
+        raise TypeError(f"Angular value must be a real number.")
+    # if units match, return unmodified
+    if unit_from == unit_to:
+        return value
     value_in_deg = value * angle_conversions_to_deg[unit_from]
     value_output = value_in_deg * angle_conversions_from_deg[unit_to]
     return value_output

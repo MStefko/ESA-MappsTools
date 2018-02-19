@@ -17,8 +17,6 @@ class TestConvertTimeFromTo(TestCase):
             convertTimeFromTo(1.3, None, "sec")
         with self.assertRaises(ValueError, msg="Invalid unit request"):
             convertTimeFromTo(1.3, "minaa", "sec")
-        with self.assertRaises(ValueError, msg="Invalid value"):
-            convertTimeFromTo(-1.3, "min", "sec")
         with self.assertRaises(TypeError, msg="Invalid value"):
             convertTimeFromTo(None, "min", "sec")
         with self.assertRaises(TypeError, msg="Invalid value"):
@@ -35,6 +33,10 @@ class TestConvertTimeFromTo(TestCase):
                           1.0)
         self.assertEquals(convertTimeFromTo(2.0, "min", "hour"),
                           2.0/60.0)
+        self.assertEquals(convertTimeFromTo(-1.3, "min", "sec"),
+                          -1.3*60.0)
+        self.assertEquals(convertTimeFromTo(-1.3241387498491351, "min", "min"),
+                          -1.3241387498491351)
 
 
 class TestConvertAngleFromTo(TestCase):
@@ -53,8 +55,10 @@ class TestConvertAngleFromTo(TestCase):
     def test_conversions(self):
         self.assertEquals(convertAngleFromTo(0.0, "deg", "rad"),
                           0.0)
-        self.assertEquals(convertAngleFromTo(0.0, "deg", "deg"),
+        self.assertEquals(convertAngleFromTo(0, "deg", "deg"),
                           0.0)
+        self.assertEquals(convertAngleFromTo(0.23184984351384843, "deg", "deg"),
+                          0.23184984351384843)
         self.assertEquals(convertAngleFromTo(-3.1689, "deg", "deg"),
                           -3.1689)
         self.assertEquals(convertAngleFromTo(1.0, "deg", "rad"),
