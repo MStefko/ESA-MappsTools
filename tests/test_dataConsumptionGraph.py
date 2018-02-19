@@ -7,7 +7,7 @@ from power_analysis import DataConsumptionGraph
 class TestDataConsumptionGraph(TestCase):
     def setUp(self):
         self.dcg = DataConsumptionGraph("14C6", '2031-04-25T22:40:47',
-            abspath(join(split(__file__)[0],'14c6_test_attitude_and_data.csv')),
+            abspath(join(split(__file__)[0],'14c6_test_power_and_data.csv')),
             data_limit_Mbits=30000.0)
 
     def test_print_total_data_acquired(self):
