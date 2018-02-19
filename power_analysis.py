@@ -17,7 +17,8 @@ class PowerConsumptionGraph:
     """Contains information about power consumption timeline during a specified flyby."""
 
     def __init__(self, name: str, CA_timestamp: str, sheet_path: str,
-                 add_HAA: bool = True, power_limit_Wh: float = None) -> None:
+                 add_HAA: bool = True, power_limit_Wh: float = None,
+                 time_interval_h = None) -> None:
         """ Creates a power consumption analysis graph from a MAPPS resources datapack.
 
         :param name: Name of analysis (or flyby)
@@ -25,11 +26,13 @@ class PowerConsumptionGraph:
         :param sheet_path: Path to .csv MAPPS datapack
         :param add_HAA: whether to manually add HAA data (since MAPPS doesn't output it yet)
         :param power_limit_Wh: limit on total power consumed during flyby
+        :param time_interval_h: 2-tuple defining a time interval on which to perform analysis
         """
         self.name = name
         self.CA = iso8601.parse_date(CA_timestamp)
         self.time_step_s = self._parse_time_step_from_sheet(sheet_path)
         self.power_limit_Wh = power_limit_Wh
+
 
         # Read the MAPPS datapack, skipping the comment rows and the row with units
         df = pd.read_csv(sheet_path, skiprows=list(range(22)) + [23], index_col=0)
@@ -47,6 +50,13 @@ class PowerConsumptionGraph:
         if add_HAA:
             self._add_HAA_to_dataframe(df)
         self.data = df
+
+        if time_interval_h is not None:
+            if len(time_interval_h)!=2 or any([not isinstance(n, (int, float)) for n in time_interval_h]):
+                raise ValueError(f"Invalid time_interval_h: {time_interval_h}")
+            cutoff_bottom = df.loc[df.index >= time_interval_h[0]]
+            cutoff_top = cutoff_bottom.loc[cutoff_bottom.index <= time_interval_h[1]]
+            self.data = cutoff_top
 
     def print_total_power_consumed(self) -> str:
         """ Prints the total consumed power during the flyby.
@@ -170,7 +180,16 @@ class PowerConsumptionGraph:
                     float_strings = re.findall("\d+\.\d+", line)
                     if len(float_strings) != 1:
                         raise ValueError("11-th line of sheet doesn't contain exactly 1 float.")
-                    return float(float_strings[0])
+                    value = float(float_strings[0])
+                    if "Seconds" in line:
+                        value = value
+                    elif "Minutes" in line:
+                        value = 60 * value
+                    elif "Hours" in line:
+                        value = 3600 * value
+                    else:
+                        raise ValueError("Unable to parse time unit from 11-th line of sheet.")
+                    return value
 
     def _transform_timestamp_to_hours_from_CA(self, UTC_timestamp: str) -> float:
         """ Calculates delta time in hours from CA.
@@ -190,7 +209,8 @@ class DataConsumptionGraph:
     """Contains information about data consumption timeline during a specified flyby."""
 
     def __init__(self, name: str, CA_timestamp: str, sheet_path: str,
-                 add_HAA: bool = True, data_limit_Mbits: float = None) -> None:
+                 add_HAA: bool = True, data_limit_Mbits: float = None,
+                 time_interval_h = None) -> None:
         """ Creates a powerdata consumption analysis graph from a MAPPS resources datapack.
 
         :param name: Name of analysis (or flyby)
@@ -198,6 +218,7 @@ class DataConsumptionGraph:
         :param sheet_path: Path to .csv MAPPS datapack
         :param add_HAA: whether to manually add HAA data (since MAPPS doesn't output it yet)
         :param data_limit_Mbits: limit on total data acquired during flyby
+        :param time_interval_h: 2-tuple defining a time interval on which to perform analysis
         """
         self.name = name
         self.CA: datetime = iso8601.parse_date(CA_timestamp)
@@ -215,6 +236,13 @@ class DataConsumptionGraph:
         # Rename the row index axis
         df = df.rename_axis("Time [h]")
 
+        if time_interval_h is not None:
+            if len(time_interval_h) != 2 or any([not isinstance(n, (int, float)) for n in time_interval_h]):
+                raise ValueError(f"Invalid time_interval_h: {time_interval_h}")
+            cutoff_bottom = df.loc[df.index >= time_interval_h[0]]
+            cutoff_top = cutoff_bottom.loc[cutoff_bottom.index <= time_interval_h[1]]
+            df = cutoff_top
+
         self.data_rate = df[rates].copy()
         self.data_accum = df[accum].copy()
         # Strip the string "Data Rate " from column names
@@ -224,6 +252,8 @@ class DataConsumptionGraph:
 
         if add_HAA:
             self._add_HAA()
+
+
 
     @staticmethod
     def _lstrip_characters(column_label: str, no_of_characters) -> str:
@@ -322,7 +352,16 @@ class DataConsumptionGraph:
                     float_strings = re.findall("\d+\.\d+", line)
                     if len(float_strings) != 1:
                         raise ValueError("11-th line of sheet doesn't contain exactly 1 float.")
-                    return float(float_strings[0])
+                    value = float(float_strings[0])
+                    if "Seconds" in line:
+                        value = value
+                    elif "Minutes" in line:
+                        value = 60 * value
+                    elif "Hours" in line:
+                        value = 3600 * value
+                    else:
+                        raise ValueError("Unable to parse time unit from 11-th line of sheet.")
+                    return value
 
     def _transform_timestamp_to_hours_from_CA(self, UTC_timestamp: str) -> float:
         """ Calculates delta time in hours from CA.
@@ -351,5 +390,5 @@ if __name__ == '__main__':
     pcg.plot()
     plt.show()
 
-    dcg.plot()
-    plt.show()
+    #dcg.plot()
+    #plt.show()
