@@ -10,6 +10,5 @@ setup(
     author_email='marcel.stefko@esa.int',
     description='',
     test_suite='tests',
-    install_requires=['numpy','six','matplotlib','iso8601','spiceypy','shapely','pandas'],
-    data_files=[('tests', ['tests/itl_file_in.itl', 'tests/itl_file_ref.itl'])]
+    install_requires=['numpy','six','matplotlib','iso8601','spiceypy','shapely','pandas']
 )
