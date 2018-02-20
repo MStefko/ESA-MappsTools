@@ -11,6 +11,7 @@ import numpy as np
 
 from mosaics.units import convertAngleFromTo, angular_units
 
+
 class Rectangle:
     """ Simple non-rotatable rectangle which serves as representation of FOV. """
 
@@ -32,7 +33,7 @@ class Rectangle:
                              (x_center + dx, y_center + dy), (x_center + dx, y_center - dy)]
             self._polygon = Polygon(self._corners)
             self._center = point
-            self._size = lengths
+            self._size = tuple(abs(l) for l in lengths)
         elif mode == "CORNER":
             x_edge, y_edge = point
             dx, dy = lengths
@@ -40,7 +41,7 @@ class Rectangle:
                              (x_edge + dx, y_edge + dy), (x_edge + dx, y_edge)]
             self._polygon = Polygon(self._corners)
             self._center = (x_edge + dx / 2, y_edge + dx / 2)
-            self._size = lengths
+            self._size = tuple(abs(l) for l in lengths)
 
     def __str__(self):
         return f"Rectangle: {self.corners} "
@@ -185,7 +186,7 @@ def get_illuminated_shape(probe: str, body: str, time: datetime, angular_unit: s
              point. The x-direction points towards the Sun.
     """
     if angular_unit not in angular_units:
-        raise ValueError(f"Unknown angular_unit: '{angular_unit}'. Allowed units: {conversions_from_rad.keys()}")
+        raise ValueError(f"Unknown angular_unit: '{angular_unit}'. Allowed units: {angular_units}")
 
     et = datetime2et(time)
     ncuts = 20
@@ -221,7 +222,6 @@ def get_illuminated_shape(probe: str, body: str, time: datetime, angular_unit: s
     # (limb top -> ... -> limb bottom -> terminator bottom -> ... -> terminator top)
     # these vectors emanate from probe towards the body limb and terminator
     points_3d = list(limb_points) + list(reversed(terminator_points))
-
 
     # project the points from IAU body-fixed 3d frame, to our probe POV 2d frame
     points_2d = []
