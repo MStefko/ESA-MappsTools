@@ -31,7 +31,7 @@ class ScanGenerator:
         :param transfer_slew_rate: Slew rate for transferring in between scans - as high as possible
         """
         if fov_width <= 0.0:
-            raise ValueError(f"FOV width must be position: {fov_width}")
+            raise ValueError(f"FOV width must be positive: {fov_width}")
         self.fov_width = fov_width
 
         self.probe = probe
@@ -39,10 +39,10 @@ class ScanGenerator:
 
         self.start_time = start_time
         if time_unit not in time_units:
-            raise ValueError(f"Time unit must be one of following: {DiskMosaic.time_unit_names}")
+            raise ValueError(f"Time unit must be one of following: {time_units}")
         self.time_unit = time_unit
         if angular_unit not in angular_units:
-            raise ValueError(f"Angular unit must be one of following: {DiskMosaic.allowed_angular_units}")
+            raise ValueError(f"Angular unit must be one of following: {angular_units}")
         self.angular_unit = angular_unit
         if measurement_slew_rate <= 0.0:
             raise ValueError(f"Measurement slew rate must be positive: {measurement_slew_rate}")
