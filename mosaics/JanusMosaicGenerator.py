@@ -21,7 +21,6 @@ class JanusMosaicGenerator:
     FILTER_SWITCH_DURATION_SECONDS = 2.5
     JANUS_max_Mbits_per_image = JANUS_FOV_RES[0] * JANUS_FOV_RES[1] * 14 / 1_000_000
 
-
     def __init__(self, target: str, time_unit: str = "min", angular_unit: str = "deg"):
         """ Creates a JanusMosaicGenerator
 
@@ -40,9 +39,8 @@ class JanusMosaicGenerator:
         # Convert JANUS FOV size from radians to required angular unit
         self.fov_size: Tuple[float, float] = tuple(
             convertAngleFromTo(v_deg, "deg", self.angular_unit) for v_deg in self.JANUS_FOV_SIZE_DEG)
-
+        # the time unit arguments are in opposite order because slew rate has time in denominator
         self.slew_rate_in_required_units = convertTimeFromTo(convertAngleFromTo(self.JUICE_SLEW_RATE_DEG_PER_SEC, "deg", self.angular_unit), self.time_unit, "sec")
-
 
     def _get_max_dwell_time_s(self, max_smear: float, time: datetime) -> float:
         return get_max_dwell_time_s(max_smear, self.probe, self.target, time,
@@ -170,14 +168,15 @@ f"""*** POST-GENERATION WARNING ***
             raise ValueError("max_smear must be positive")
         if no_of_filters < 1:
             raise ValueError("no_of_filters must be at least 1")
-
+        if n_iterations < 1:
+            raise ValueError("n_iteration must be at least 1")
 
         # initial guess for duration - from this we calculate the exposure time
         duration_guess_minutes = 1.0
         time_interval = (time, time + timedelta(minutes=int(duration_guess_minutes)))
 
         i = 1
-        while (i <= n_iterations):
+        while True:
             # calculate margin needed based on last time interval estimate
             ang_diameters = [get_body_angular_diameter_rad(self.probe, self.target, t) for t in
                              time_interval]
@@ -215,6 +214,8 @@ f'''Iteration no. {i} out of {n_iterations}
             else:
                 duration_guess_minutes = duration.total_seconds() / 60
                 i += 1
+                if i > n_iterations:
+                    break
 
         # calculate final growth ratio
         ang_diameters = [get_body_angular_diameter_rad(self.probe, self.target, t) for t in
