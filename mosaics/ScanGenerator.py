@@ -1,9 +1,11 @@
 # coding=utf-8
 from datetime import datetime
 
+import numpy as np
+
 from mosaics.Scan import Scan
 from mosaics.DiskMosaicGenerator import DiskMosaicGenerator
-from mosaics.misc import get_body_angular_diameter_rad
+from mosaics.misc import get_body_angular_diameter_rad, get_illuminated_shape
 from mosaics.units import time_units, angular_units, convertTimeFromTo, convertAngleFromTo
 
 _optimize_steps_centered = DiskMosaicGenerator._optimize_steps_centered
@@ -53,8 +55,6 @@ class ScanGenerator:
         self.target_angular_diameter = convertAngleFromTo(get_body_angular_diameter_rad(self.probe, self.target, start_time),
                                                           "rad", self.angular_unit)
 
-
-
     def generate_symmetric_scan(self, margin: float = 0.2, min_overlap: float = 0.1):
         """
 
@@ -77,6 +77,35 @@ class ScanGenerator:
         return Scan(self.fov_width, self.target, self.start_time, self.time_unit, self.angular_unit,
                     self.measurement_slew_rate, line_slew_time, border_slew_time,
                     (start_x, start_y), (step_x, step_y), no_of_slews)
+
+    def generate_sunside_scan(self, margin: float = 0.2, min_overlap: float = 0.1):
+        """
+
+        :param margin: Extra area around the target to be covered by the mosaic, in units of diameter
+        (value 0.0 corresponds to no extra margin)
+        :param min_overlap: Minimal value for overlap of neighboring vertical scans(value of 0.1 means 10% of image
+        on either side overlaps with the neighbor)
+        :return: Generated Scan
+        """
+        if margin <= -1.0:
+            raise ValueError("margin must be larger than -1.0")
+        if min_overlap < 0.0 or min_overlap >= 1.0:
+            raise ValueError("min_overlap must be in the interval <0.0, 1.0)")
+        diameter_to_cover = (self.target_angular_diameter * (1.0 + margin))
+        illuminated_shape = get_illuminated_shape(self.probe, self.target, self.start_time, self.angular_unit)
+        x_shape_coords = np.array([c[0] for c in list(illuminated_shape.exterior.coords)]) * (1.0 + margin)
+        shape_width = max(x_shape_coords) - min(x_shape_coords)
+        (no_of_slews, start_x, step_x) = _optimize_steps_centered(shape_width, self.fov_width, min_overlap)
+        # translate center to center of x_shape
+        start_x += (max(x_shape_coords) + min(x_shape_coords)) / 2
+        start_y = diameter_to_cover / 2
+        step_y = - diameter_to_cover
+        line_slew_time = step_x / self.transfer_slew_rate
+        border_slew_time = convertTimeFromTo(5.0, "min", self.time_unit)
+        return Scan(self.fov_width, self.target, self.start_time, self.time_unit, self.angular_unit,
+                    self.measurement_slew_rate, line_slew_time, border_slew_time,
+                    (start_x, start_y), (step_x, step_y), no_of_slews)
+
 
 if __name__ == '__main__':
     import spiceypy as spy
