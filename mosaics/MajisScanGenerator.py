@@ -7,6 +7,7 @@ import spiceypy as spy
 from mosaics.Scan import Scan
 from mosaics.ScanGenerator import ScanGenerator
 
+
 class MajisScanGenerator:
     """ Generator for scans optimized for MAJIS FOV. """
     MAJIS_FOV_WIDTH_DEG = 3.4
@@ -100,15 +101,15 @@ if __name__=="__main__":
     MK_C32 = r"C:\Users\Marcel Stefko\Kernels\JUICE\mk\juice_crema_3_2_v151.tm"
     spy.furnsh(MK_C32)
 
-    #start_time = datetime.strptime("2031-09-27T09:50:00", "%Y-%m-%dT%H:%M:%S")
+    # start_time = datetime.strptime("2031-09-27T09:50:00", "%Y-%m-%dT%H:%M:%S")
     start_time = datetime.strptime("2031-04-25T19:20:00", "%Y-%m-%dT%H:%M:%S")
     msg = MajisScanGenerator("CALLISTO", "min", "deg")
-    s = msg.generate_scan(start_time,
-                          2,
-                          margin=0.30,
-                          overlap=0.05,
-                          sunside=True)
+    sc = msg.generate_scan(start_time,
+                           2,
+                           margin=0.30,
+                           overlap=0.05,
+                           sunside=True)
 
-    print(s.generate_PTR(decimal_places=2))
-    s.plot()
+    print(sc.generate_PTR(decimal_places=2))
+    sc.plot()
 
