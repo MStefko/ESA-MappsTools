@@ -3,6 +3,19 @@ This repository contains assorted modules for working with MAPPS and
 Spice, e.g. manipulating timestamps, analyzing power consumption,
 and generating mosaic instructions.
 
+## Feature overview
+
+### Resource analysis of MAPPS datapacks
+
+![](img/power_data_graph.png)
+
+### Generation of JANUS mosaics and PTR requests
+
+![](img/video.mp4)
+
+AAA
+
+![](img/JANUS_sunside_mosaic_Callisto.gif)
 
 ## timestamps.py
  - Translate between relative and absolute timestamps in MAPPS config files, e.g.
