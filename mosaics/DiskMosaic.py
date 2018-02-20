@@ -7,7 +7,6 @@ from matplotlib import pyplot as plt
 from datetime import datetime, timedelta
 from typing import List, Tuple
 
-import numpy as np
 import spiceypy as spy
 
 from mosaics.misc import Rectangle, get_body_angular_diameter_rad, get_illuminated_shape
