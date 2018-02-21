@@ -80,10 +80,8 @@ class PowerConsumptionGraph:
         print(message)
         return message
 
-    def plot(self, plot_outline: bool = True) -> plt.Figure:
-        """ Generate stacked power consumption plot.
-        Needs to be shown with plt.show() afterwards
-        """
+    def plot(self, plot_outline: bool = True) -> None:
+        """ Generate stacked power consumption plot. """
         X_LIMIT_H = [-15.0, 15.0]
         # Create pandas stacked plot and format the axis limits
         ax_left = plt.gca()
@@ -117,7 +115,7 @@ class PowerConsumptionGraph:
         ax3.yaxis.set_major_locator(plt.NullLocator())
 
         ax_right.legend(loc='upper right')
-        return plt.gcf()
+        plt.show()
 
     @staticmethod
     def _get_power_profile() -> Tuple[np.ndarray, np.ndarray]:
@@ -281,10 +279,8 @@ class DataConsumptionGraph:
         print(message)
         return message
 
-    def plot(self) -> plt.Figure:
-        """ Generate stacked power consumption plot.
-        Needs to be shown with plt.show() afterwards
-        """
+    def plot(self) -> None:
+        """ Generate stacked power consumption plot. """
         # Create pandas stacked plot and format the axis limits
         ax: plt.Axes = self._get_only_instrument_dataframe(self.data_accum).plot.area(stacked=True)
         ax.set_xlim(left=-10.0, right=10.0)
@@ -303,7 +299,7 @@ class DataConsumptionGraph:
             if ax.get_ylim()[1] < self.data_limit_Mbits:
                 ax.set_ylim(bottom=0.0, top=1.1*self.data_limit_Mbits)
         ax.legend(handles[::-1], labels[::-1], loc='upper left')
-        return plt.gcf()
+        plt.show()
 
     @staticmethod
     def _get_only_instrument_dataframe(df: pd.DataFrame) -> pd.DataFrame:
