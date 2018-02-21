@@ -14,8 +14,7 @@ and generating mosaic instructions.
 One can generate either a full-disk mosaic, or mosaic of the sun-illuminated
 surface of a body.
 
-![](img/mosaic_14C6_sunside_JANUS.png)
-![](img/video_14C6_sunside_JANUS.mp4)
+<img src="img/mosaic_14C6_sunside_JANUS.png" width="350"> ![](img/video_14C6_sunside_JANUS.mp4)
 
 ### Generation of MAJIS slews and PTR requests
 Again, the slew can either cover the whole disk, or only the sun-illuminated portion.
