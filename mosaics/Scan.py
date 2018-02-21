@@ -14,9 +14,8 @@ from mosaics.units import angular_units, time_units, convertAngleFromTo
 
 
 class Scan:
-    """ Observation in which a slit oriented along x-axis slews with a certain angular rate in the y direction.
-
-    Number of slew lines is optional. """
+    """ Observation in which a slit oriented along x-axis slews
+    with a certain angular rate in the y direction. """
     time_unit_names = {"sec": "seconds", "min": "minutes", "hour": "hours"}
 
     def __init__(self, fov_width: float,
@@ -216,7 +215,7 @@ f'''<block ref="OBS">
         plt.grid()
         plt.xlabel(f'X coordinate [{self.angular_unit}]')
         plt.ylabel(f'Y coordinate [{self.angular_unit}]')
-        plt.title(f'Mosaic of {self.target} at {self.start_time.isoformat()}')
+        plt.title(f'Scan of {self.target} at {self.start_time.isoformat()}')
         plt.show()
 
 if __name__ == "__main__":
