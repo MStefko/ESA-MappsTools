@@ -4,11 +4,11 @@ from datetime import datetime
 import numpy as np
 
 from mosaics.Scan import Scan
-from mosaics.DiskMosaicGenerator import DiskMosaicGenerator
+from mosaics.MosaicGenerator import MosaicGenerator
 from mosaics.misc import get_body_angular_diameter_rad, get_illuminated_shape
 from mosaics.units import time_units, angular_units, convertTimeFromTo, convertAngleFromTo
 
-_optimize_steps_centered = DiskMosaicGenerator._optimize_steps_centered
+_optimize_steps_centered = MosaicGenerator._optimize_steps_centered
 
 
 class ScanGenerator:
@@ -56,12 +56,15 @@ class ScanGenerator:
                                                           "rad", self.angular_unit)
 
     def generate_symmetric_scan(self, margin: float = 0.2, min_overlap: float = 0.1):
-        """
+        """ Generate a full-body "scan" observation that is symmetric along both the x and y axis.
+        Number of vertical slews is optimized according to input parameters, so that the lowest number
+        of slews possible is used.
 
         :param margin: Extra area around the target to be covered by the mosaic, in units of diameter
         (value 0.0 corresponds to no extra margin)
-        :param min_overlap: Minimal value for overlap of neighboring vertical scans(value of 0.1 means 10% of image
-        on either side overlaps with the neighbor)
+        :param min_overlap: Minimal value for overlap of neighboring images (value of 0.1 means 10% of image
+        on either side overlaps with the neighbor). Resulting overlap can be higher, if it is allowed
+        by size of target (however, this is never at the cost of needing more tiles to cover the image).
         :return: Generated Scan
         """
         if margin <= -1.0:
@@ -79,7 +82,8 @@ class ScanGenerator:
                     (start_x, start_y), (step_x, step_y), no_of_slews)
 
     def generate_sunside_scan(self, margin: float = 0.2, min_overlap: float = 0.1):
-        """
+        """ Generate a "scan" observation that images the sun-illuminated part of the body visible
+        from the spacecraft. Number of vertical slews is optimized for the illuminated shape.
 
         :param margin: Extra area around the target to be covered by the mosaic, in units of diameter
         (value 0.0 corresponds to no extra margin)
