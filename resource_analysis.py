@@ -24,9 +24,11 @@ class PowerConsumptionGraph:
         :param name: Name of analysis (or flyby)
         :param CA_timestamp: UTC timestamp of closest approach, e.g. '2031-04-25T22:40:47'
         :param sheet_path: Path to .csv MAPPS datapack
-        :param add_HAA: whether to manually add HAA data (since MAPPS doesn't output it yet)
-        :param power_limit_Wh: limit on total power consumed during flyby
-        :param time_interval_h: 2-tuple defining a time interval on which to perform analysis
+        :param add_HAA: Whether to manually add HAA data (since MAPPS doesn't output it yet)
+        Default False
+        :param power_limit_Wh: limit on total power consumed during flyby in Watt-hours
+        :param time_interval_h: 2-tuple defining a time interval on which to perform analysis,
+        in hours
         """
         self.name = name
         self.CA = iso8601.parse_date(CA_timestamp)
