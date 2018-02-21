@@ -36,6 +36,7 @@ disk_mosaic = generator.generate_mosaic(
     stabilization_time_s=5, # stabilization time after each position change
     no_of_filters=4, # number of filters used at each position
     extra_margin=0.05, # margin of 5% around the edge of body (e.g. to capture the atmosphere)
+    overlap=0.1, # minimal overlap of 10% between neighboring frames
     sunside=False # we want a full-disk mosaic
     )
 ```
@@ -115,6 +116,7 @@ sunside_mosaic = generator.generate_mosaic(
     stabilization_time_s=5,
     no_of_filters=4,
     extra_margin=0.05,
+    overlap=0.1,
     sunside=True # we want to image the sun-illuminated side of Callisto
     )
 
