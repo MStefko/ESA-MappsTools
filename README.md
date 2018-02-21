@@ -11,11 +11,7 @@ and generating mosaic instructions.
 
 ### Generation of JANUS mosaics and PTR requests
 
-![](img/video.mp4)
-
-AAA
-
-![](img/JANUS_sunside_mosaic_Callisto.gif)
+![](img/JANUS_14C6_sunside_mosaic.png) ![](img/video.mp4)
 
 ## timestamps.py
  - Translate between relative and absolute timestamps in MAPPS config files, e.g.
