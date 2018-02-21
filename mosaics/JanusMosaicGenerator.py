@@ -15,7 +15,7 @@ class JanusMosaicGenerator:
     """ Generator for mosaics optimized for JANUS FOV and behavior.
 
     Methods:
-        generate_optimized_mosaic(): Creates either a full-body "raster" mosaic symmetric along
+        generate_mosaic(): Creates either a full-body "raster" mosaic symmetric along
             x and y axis, or a "custom" mosaic imaging the sun-illuminated part of body.
     """
     JANUS_FOV_SIZE_DEG = (1.72, 1.29)
@@ -50,10 +50,10 @@ class JanusMosaicGenerator:
         return get_max_dwell_time_s(max_smear, self.probe, self.target, time,
             self.JANUS_FOV_SIZE_DEG[0], self.JANUS_FOV_RES[0])
 
-    def generate_optimized_mosaic(self, time: datetime, max_exposure_time_s: float,
-                                  stabilization_time_s: float = 0.0, duration_guess_minutes: float = 30,
-                                  max_smear: float = 0.25, no_of_filters: int = 1, extra_margin: float = 0.1,
-                                  overlap: float = 0.1, sunside: bool = False) -> Union[DiskMosaic, CustomMosaic]:
+    def generate_mosaic(self, time: datetime, max_exposure_time_s: float,
+                        stabilization_time_s: float = 0.0, duration_guess_minutes: float = 30,
+                        max_smear: float = 0.25, no_of_filters: int = 1, extra_margin: float = 0.1,
+                        overlap: float = 0.1, sunside: bool = False) -> Union[DiskMosaic, CustomMosaic]:
         """ Create a mosaic with image positions optimized for minimal frame number,
         and minimal distance between frames, while preserving required overlap between
         frames and margin around the body.
@@ -304,14 +304,14 @@ if __name__ == '__main__':
 
     start_time = datetime.strptime("2030-09-17T12:30:00", "%Y-%m-%dT%H:%M:%S")
     jmg = JanusMosaicGenerator("EUROPA", "min", "deg")
-    cm = jmg.generate_optimized_mosaic(start_time,
-                                       max_exposure_time_s=20,
-                                       max_smear=0.25,
-                                       stabilization_time_s=5,
-                                       no_of_filters=4,
-                                       extra_margin=0.05,
-                                       overlap=0.10,
-                                       sunside=True)
+    cm = jmg.generate_mosaic(start_time,
+                             max_exposure_time_s=20,
+                             max_smear=0.25,
+                             stabilization_time_s=5,
+                             no_of_filters=4,
+                             extra_margin=0.05,
+                             overlap=0.10,
+                             sunside=True)
 
     cm.plot()
     print(cm.generate_PTR(decimal_places=2))
