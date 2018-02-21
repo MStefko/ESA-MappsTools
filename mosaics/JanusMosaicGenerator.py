@@ -2,18 +2,22 @@
 from datetime import datetime, timedelta
 from typing import Tuple, Union
 
+import spiceypy as spy
+
 from mosaics.CustomMosaic import CustomMosaic
 from mosaics.DiskMosaic import DiskMosaic
-from mosaics.DiskMosaicGenerator import DiskMosaicGenerator
-from mosaics.misc import get_max_dwell_time_s, get_body_angular_diameter_rad, get_illuminated_shape
-from mosaics.tsp_solver import solve_tsp
+from mosaics.MosaicGenerator import MosaicGenerator
+from mosaics.misc import get_max_dwell_time_s, get_body_angular_diameter_rad
 from mosaics.units import angular_units, time_units, convertAngleFromTo, convertTimeFromTo
-import numpy as np
-import spiceypy as spy
 
 
 class JanusMosaicGenerator:
-    """ Generator for mosaics optimized for JANUS FOV and behavior."""
+    """ Generator for mosaics optimized for JANUS FOV and behavior.
+
+    Methods:
+        generate_optimized_mosaic(): Creates either a full-body "raster" mosaic symmetric along
+            x and y axis, or a "custom" mosaic imaging the sun-illuminated part of body.
+    """
     JANUS_FOV_SIZE_DEG = (1.72, 1.29)
     JANUS_FOV_RES = (2000, 1504)
     probe = "JUICE"
@@ -50,19 +54,37 @@ class JanusMosaicGenerator:
                                   stabilization_time_s: float = 0.0, duration_guess_minutes: float = 30,
                                   max_smear: float = 0.25, no_of_filters: int = 1, extra_margin: float = 0.1,
                                   overlap: float = 0.1, sunside: bool = False) -> Union[DiskMosaic, CustomMosaic]:
-        """ Creates a mosaic with image positions optimized for minimal frame number,
-        and minimal distance between frames, while preserving required overlap and margin.
+        """ Create a mosaic with image positions optimized for minimal frame number,
+        and minimal distance between frames, while preserving required overlap between
+        frames and margin around the body.
 
-        :param time: Start time of mosaic
-        :param max_exposure_time_s: Maximal exposure time for one frame
-        :param stabilization_time_s: Stabilization time after each position change
-        :param duration_guess_minutes: Initial guess for duration of mosaic
-        :param max_smear: Maximal allowed smear in units of pixels
-        :param no_of_filters: Number of filters used per each position
-        :param extra_margin: Extra space left around the body disk in units of body radii
-        :param overlap: Minimal required overlap of individual frames
-        :param sunside: If true, only the sun-illuminated surface is covered. Default false.
-        :return: Optimized DiskMosaic
+
+
+        :param time: Start time of mosaic as datetime object.
+        :param max_exposure_time_s: Maximal exposure time for one frame in seconds,
+        must be larger than 0.
+        :param stabilization_time_s: Stabilization time after each position change before
+        imaging starts, must be larger or equal to 0.
+        :param duration_guess_minutes: Initial guess for duration of mosaic in minutes. This is used to
+        estimate the shrink / growth rate of target body, so that changing size and velocity
+        conditions do not affect the coverage / smear too much. Must be larger or equal to 1.0
+        :param max_smear: Maximal allowed smear in units of pixels. This means that per exposure,
+        the imaged object cannot move inside the image more than a given amount. For example,
+        a value 0.25 would allow the imaged object to move 1/4th of a pixel over one exposure.
+        If smear is above this value, exposure time is reduced until this requirement is met.
+        :param no_of_filters: Number of imaging filters used per each position. This increases
+        dwell time and data volume.
+        :param extra_margin: Extra space left around the body disk in units of body radii. This
+        effectively increases the presumed size of object. For example, a value of 0.1 would
+        cause the mosaic to also cover the atmosphere around the object, up to the altitude of
+        10% of body radius.
+        :param overlap: Minimal required overlap of neighboring frames. For example, if this
+        is set to 0.1, then at least 10% of given frame overlaps with its neighbor on each
+        of the 4 sides. Must be between 0.0 and 1.0
+        :param sunside: If set to True, only the sun-illuminated surface is covered. Otherwise
+        the whole body is imaged in a "raster" observation. Default is False - full-disk imaging..
+        :return: Optimized mosaic, a DiskMosaic in case of full-body imaging, and a CustomMosaic
+        if only sun-illuminated part of body is imaged.
         """
         if max_exposure_time_s <= 0.0:
             raise ValueError("max_exposure_time must be positive.")
@@ -83,15 +105,16 @@ class JanusMosaicGenerator:
             used_exposure_time_s * no_of_filters + \
             self.FILTER_SWITCH_DURATION_SECONDS * (no_of_filters - 1)
 
+        # Compute
         time_interval = (time, time + timedelta(minutes=duration_guess_minutes))
         ang_diameters = [get_body_angular_diameter_rad(self.probe, self.target, t) for t in
                          time_interval]
         ratio = ang_diameters[1] / ang_diameters[0]
         margin = (ratio - 1 if ratio > 1 else 0.0) + extra_margin
 
-        dmg = DiskMosaicGenerator(self.fov_size, "JUICE", self.target, time, self.time_unit,
-                                  self.angular_unit, convertTimeFromTo(dwell_time_s, "sec", self.time_unit),
-                                  self.slew_rate_in_required_units)
+        dmg = MosaicGenerator(self.fov_size, "JUICE", self.target, time, self.time_unit,
+                              self.angular_unit, convertTimeFromTo(dwell_time_s, "sec", self.time_unit),
+                              self.slew_rate_in_required_units)
         if sunside:
             dm = dmg.generate_sunside_mosaic(margin=margin, min_overlap=overlap)
         else:
@@ -151,7 +174,7 @@ f"""*** POST-GENERATION WARNING ***
                                             stabilization_time_s: float = 0.0,
                                             max_smear: float = 0.25, no_of_filters: int = 1, extra_margin: float = 0.05,
                                             overlap: float = 0.1, n_iterations: int = 30) -> DiskMosaic:
-        """ Iteratively generates and optimizes a JANUS mosaic.
+        """ Iteratively generate and optimizes a JANUS mosaic. Only supports generating "raster" DiskMosaics.
 
         Iteration takes an initial duration guess, computes required mosaic size while accounting for moon growth
         during this duration, and computes the time required to image this mosaic. This computed time is then
@@ -160,15 +183,26 @@ f"""*** POST-GENERATION WARNING ***
         of required positions), and duration affects geometry in return (target size changes over time so if the
         mosaic takes longer, the target grows larger).
 
-        :param time: Start time of mosaic
-        :param max_exposure_time_s: Maximal desider exposure time for one image in seconds
-        :param stabilization_time_s: Required stabilization time after each slew in seconds
-        :param max_smear: Maximal smear value for one image in units of pixels
-        :param no_of_filters: Number of filters used at each position in mosaic
-        :param extra_margin: Fraction of target's diameter to be imaged to account for atmosphere etc.
-        :param overlap: Minimal value of overlap between neighboring frames
-        :param n_iterations: Maximal number of iterations
-        :return: Optimized DiskMosaic
+        :param time: Start time of mosaic as datetime object.
+        :param max_exposure_time_s: Maximal exposure time for one frame in seconds,
+        must be larger than 0.
+        :param stabilization_time_s: Stabilization time after each position change before
+        imaging starts, must be larger or equal to 0.
+        :param max_smear: Maximal allowed smear in units of pixels. This means that per exposure,
+        the imaged object cannot move inside the image more than a given amount. For example,
+        a value 0.25 would allow the imaged object to move 1/4th of a pixel over one exposure.
+        If smear is above this value, exposure time is reduced until this requirement is met.
+        :param no_of_filters: Number of imaging filters used per each position. This increases
+        dwell time and data volume.
+        :param extra_margin: Extra space left around the body disk in units of body radii. This
+        effectively increases the presumed size of object. For example, a value of 0.1 would
+        cause the mosaic to also cover the atmosphere around the object, up to the altitude of
+        10% of body radius.
+        :param overlap: Minimal required overlap of neighboring frames. For example, if this
+        is set to 0.1, then at least 10% of given frame overlaps with its neighbor on each
+        of the 4 sides. Must be between 0.0 and 1.0
+        :param n_iterations: Maximal number of iterations before returning the result.
+        :return: Optimized DiskMosaic.
         """
         if max_exposure_time_s <= 0.0:
             raise ValueError("max_exposure_time must be positive.")
@@ -209,10 +243,10 @@ f'''Iteration no. {i} out of {n_iterations}
                 used_exposure_time_s * no_of_filters + \
                 self.FILTER_SWITCH_DURATION_SECONDS * (no_of_filters - 1)
 
-            dmg = DiskMosaicGenerator(self.fov_size, "JUICE", self.target, time, self.time_unit,
-                                      self.angular_unit,
-                                      convertTimeFromTo(dwell_time_s, "sec", self.time_unit),
-                                      self.slew_rate_in_required_units)
+            dmg = MosaicGenerator(self.fov_size, "JUICE", self.target, time, self.time_unit,
+                                  self.angular_unit,
+                                  convertTimeFromTo(dwell_time_s, "sec", self.time_unit),
+                                  self.slew_rate_in_required_units)
             dm = dmg.generate_symmetric_mosaic(margin=margin, min_overlap=overlap)
 
             # update time interval estimate
