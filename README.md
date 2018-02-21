@@ -9,6 +9,8 @@ and generating mosaic instructions.
 
 ![](doc/img/power_data_graph.png)
 
+For details see **[resource_analysis.md](doc/resource_analysis.md)**
+
 ## Generation of JANUS mosaics and PTR requests
 
 One can generate either a full-disk mosaic, or mosaic of the sun-illuminated
@@ -18,7 +20,7 @@ surface of a body.
 | :--------: | :--------: |
 | <img src="doc/img/mosaic_14C6_sunside_JANUS.png" width="450"> | ![](doc/img/video_14C6_sunside_JANUS.mp4) |
 
-
+For details see **[JANUS mosaics.md](doc/JANUS_mosaics.md)**
 
 ## Generation of MAJIS slews and PTR requests
 Again, the slew can either cover the whole disk, or only the sun-illuminated portion.
@@ -27,13 +29,15 @@ Again, the slew can either cover the whole disk, or only the sun-illuminated por
 | :--------: | :--------: |
 | <img src="doc/img/scan_22C11_full_MAJIS.png" width="450"> | ![](doc/img/video_22C11_full_MAJIS.mp4) |
 
-
+For details see **[MAJIS scans.md](doc/MAJIS_scans.md)**
 
 ## Timestamp processing
 Translating between relative and absolute timestamps in MAPPS config files, e.g.
 `CLS_APP_CAL +06:28:00` to `2031-04-26T05:08:47Z`, and vice versa.
 
-## Detailed features & how-tos
+For details see **[timestamps.md](doc/timestamps.md)**
+
+# Detailed features & how-tos
 
 Example scripts are also available in the [examples](examples/) folder.
 
