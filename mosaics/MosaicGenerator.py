@@ -85,7 +85,7 @@ class MosaicGenerator:
         return DiskMosaic(self.fov_size, self.target, self.start_time, self.time_unit, self.angular_unit,
                           self.dwell_time, point_slew_time, line_slew_time, starts, steps, points)
 
-    def generate_sunside_mosaic(self, margin: float = 0.5, min_overlap: float = 0.1) -> CustomMosaic:
+    def generate_sunside_mosaic(self, margin: float = 0.2, min_overlap: float = 0.1) -> CustomMosaic:
         """ Generate a "custom" observation that images the sun-illuminated part of the body visible
         from the spacecraft. Number of tiles in x and y directions on a rectangular grid is
         optimized for the illuminated shape. Tiles on this rectangular grid that don't contain any
