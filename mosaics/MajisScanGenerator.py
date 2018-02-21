@@ -9,7 +9,12 @@ from mosaics.ScanGenerator import ScanGenerator
 
 
 class MajisScanGenerator:
-    """ Generator for scans optimized for MAJIS FOV. """
+    """ Generator for scans optimized for MAJIS FOV.
+
+    Methods:
+        generate_scan(): Creates either a full-body vertical scan (scanning along y-axis),
+        or a vertical scan that covers the sun-illuminated portion of target.
+    """
     MAJIS_FOV_WIDTH_DEG = 3.4
     MAJIS_FOV_RES = (480, 1)
     # FOV height is 125 urad
@@ -41,16 +46,24 @@ class MajisScanGenerator:
 
     def generate_scan(self, time: datetime, exposure_time_s: float,
                       margin: float = 0.1, overlap: float = 0.1, sunside: bool = False) -> Scan:
-        """ Creates a scan symmetric about the Y coordinate axis.
+        """ Creates a scan symmetric about the Y coordinate axis. Positions and lengths of
+        individual vertical slews are optimized according to body dimensions and requirements.
 
-        :param time: Start time of slew
-        :param exposure_time_s: Exposure time of one line in the scan
-        (meaning one horizontal line of 480x1 pixels) in seconds
-        :param margin: Extra space left around the body disk in units of body radii
-        :param overlap: Minimal overlap of neighboring vertical scans
-        :param sunside: If True, only the sun-illuminated part of the moon is imaged, otherwise the full disk.
-                        Default False.
-        :return: Generated Scan
+        A report of the generator is printed to standard output.
+
+        :param time: Start time of slew as datetime object.
+        :param exposure_time_s: Exposure time for one line in the scan
+        (meaning one horizontal line of 480x1 pixels), in seconds. Must be larger than 0.
+        :param margin: Extra space left around the body disk in units of body radii. This
+        effectively increases the presumed size of object. For example, a value of 0.1 would
+        cause the scan to also cover the atmosphere around the object, up to the altitude of
+        10% of body radius.
+        :param overlap: Minimal required overlap of neighboring slews. For example, if this
+        is set to 0.1, then at least 10% of given slew overlaps with its neighbor on left
+        and right. Must be between 0.0 and 1.0
+        :param sunside: If set to True, only the sun-illuminated surface is covered. Otherwise
+        the whole body is imaged. Default is False - full-disk imaging.
+        :return: Generated Scan.
         """
         if exposure_time_s <= 0.0:
             raise ValueError("Exposure time must be positive.")
@@ -101,14 +114,13 @@ if __name__=="__main__":
     MK_C32 = r"C:\Users\Marcel Stefko\Kernels\JUICE\mk\juice_crema_3_2_v151.tm"
     spy.furnsh(MK_C32)
 
-    # start_time = datetime.strptime("2031-09-27T09:50:00", "%Y-%m-%dT%H:%M:%S")
-    start_time = datetime.strptime("2031-04-25T19:20:00", "%Y-%m-%dT%H:%M:%S")
+    start_time = datetime.strptime("2031-09-27T09:50:00", "%Y-%m-%dT%H:%M:%S")
+    # start_time = datetime.strptime("2031-04-25T19:20:00", "%Y-%m-%dT%H:%M:%S")
     msg = MajisScanGenerator("CALLISTO", "min", "deg")
     sc = msg.generate_scan(start_time,
                            2,
-                           margin=0.30,
-                           overlap=0.05,
-                           sunside=True)
+                           margin=0.05,
+                           overlap=0.05)
 
     print(sc.generate_PTR(decimal_places=2))
     sc.plot()
