@@ -11,15 +11,21 @@ from mosaics.tsp_solver import solve_tsp
 from mosaics.units import angular_units, time_units, convertAngleFromTo
 
 
-class DiskMosaicGenerator:
-    """ Generator for DiskMosaics. """
+class MosaicGenerator:
+    """ Generator for DiskMosaics and CustomMosaics. Contains two public methods:
+
+    - MosaicGenerator.generate_symmetric_mosaic(): Creates a symmetric full-disk "raster" mosaic.
+
+    - MosaicGenerator.generate_sunside_mosaic(): Creates a "custom" mosaic that images the sun-illuminated
+    side of the body.
+    """
     def __init__(self, fov_size: Tuple[float, float],
                  probe: str, target: str,
                  start_time: datetime,
                  time_unit: str, angular_unit: str,
                  dwell_time: float,
                  slew_rate: float):
-        """ Create a DiskMosaicGenerator
+        """ Create a MosaicGenerator
 
         :param fov_size: 2-tuple (x, y) containing rectangular FOV size
         :param probe: SPICE name of probe, e.g. "JUICE"
@@ -56,12 +62,15 @@ class DiskMosaicGenerator:
                                                           "rad", self.angular_unit)
 
     def generate_symmetric_mosaic(self, margin: float = 0.2, min_overlap: float = 0.1) -> DiskMosaic:
-        """
+        """ Generate a full-body "raster" observation that is symmetric along both the x and y axis.
+        The number of tiles of this mosaic is optimized according to input parameters., so that the
+        disk is covered evenly using the lowest number of tiles possible.
 
         :param margin: Extra area around the target to be covered by the mosaic, in units of diameter
         (value 0.0 corresponds to no extra margin)
         :param min_overlap: Minimal value for overlap of neighboring images (value of 0.1 means 10% of image
-        on either side overlaps with the neighbor)
+        on either side overlaps with the neighbor). Resulting overlap can be higher, if it is allowed
+        by size of target (however, this is never at the cost of needing more tiles to cover the image).
         :return: Generated DiskMosaic
         """
         if margin <= -1.0:
@@ -77,7 +86,10 @@ class DiskMosaicGenerator:
                           self.dwell_time, point_slew_time, line_slew_time, starts, steps, points)
 
     def generate_sunside_mosaic(self, margin: float = 0.5, min_overlap: float = 0.1) -> CustomMosaic:
-        """
+        """ Generate a "custom" observation that images the sun-illuminated part of the body visible
+        from the spacecraft. Number of tiles in x and y directions on a rectangular grid is
+        optimized for the illuminated shape. Tiles on this rectangular grid that don't contain any
+        visible part of body are skipped (usually in corners).
 
         :param margin: Extra area around the target to be covered by the mosaic, in units of diameter
         (value 0.0 corresponds to no extra margin)
@@ -147,7 +159,8 @@ class DiskMosaicGenerator:
 
     def _generate_grid_rectangles(self, no_points: Tuple[int, int], starts: Tuple[float, float], steps: Tuple[float, float])\
             -> List[Rectangle]:
-        """
+        """ Generates a rectangular grid of Rectangles based on number of points, start and step
+        in each direction.
 
         :param no_points: Number of points (x, y)
         :param starts: Start coordinate (x, y)
@@ -188,7 +201,7 @@ if __name__ == '__main__':
     spy.furnsh(MK_C32)
 
     start_time = datetime.strptime("2031-04-25T19:40:47", "%Y-%m-%dT%H:%M:%S")
-    dmg = DiskMosaicGenerator((1.72, 1.29), "JUICE", "CALLISTO", start_time, "min",
+    dmg = MosaicGenerator((1.72, 1.29), "JUICE", "CALLISTO", start_time, "min",
                               "deg", 2.0, 0.04 * 60)
     dm = dmg.generate_symmetric_mosaic(margin=0.1)
     print(dm.generate_PTR())
