@@ -1,7 +1,7 @@
 from unittest import TestCase
 from os.path import split, join, abspath
 
-from power_analysis import DataConsumptionGraph
+from resource_analysis import DataConsumptionGraph
 
 
 class TestDataConsumptionGraph(TestCase):
