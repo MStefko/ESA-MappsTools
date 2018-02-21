@@ -125,6 +125,7 @@ class JanusMosaicGenerator:
 
         report = \
 f'''JANUS MOSAIC GENERATOR REPORT:
+ Mosaic type: {"Sunside" if sunside else "Full disk"} 
  Target: {self.target}
  No of filters: {no_of_filters}
  Max smear: {max_smear} px
