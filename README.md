@@ -3,29 +3,29 @@ This repository contains assorted modules for working with MAPPS and
 Spice, e.g. manipulating timestamps, analyzing power consumption,
 and generating mosaic instructions.
 
-## Feature overview
+# Feature overview
 
-### Resource analysis of MAPPS datapacks
+## Resource analysis of MAPPS datapacks
 
 ![](doc/img/power_data_graph.png)
 
-### Generation of JANUS mosaics and PTR requests
+## Generation of JANUS mosaics and PTR requests
 
 One can generate either a full-disk mosaic, or mosaic of the sun-illuminated
 surface of a body.
 
 <img src="doc/img/mosaic_14C6_sunside_JANUS.png" width="450"> ![](doc/img/video_14C6_sunside_JANUS.mp4)
 
-### Generation of MAJIS slews and PTR requests
+## Generation of MAJIS slews and PTR requests
 Again, the slew can either cover the whole disk, or only the sun-illuminated portion.
 
 <img src="doc/img/scan_22C11_full_MAJIS.png" width="450"> ![](doc/img/video_22C11_full_MAJIS.mp4)
 
-### Timestamp processing
-Translate between relative and absolute timestamps in MAPPS config files, e.g.
+## Timestamp processing
+Translating between relative and absolute timestamps in MAPPS config files, e.g.
 `CLS_APP_CAL +06:28:00` to `2031-04-26T05:08:47Z`, and vice versa.
 
-## Detailed features
+## Detailed features & how-tos
 
 ## timestamps.py
 
@@ -108,167 +108,14 @@ Perform analysis of consumed resources on a MAPPS scenario.
 ![](doc/img/data_graph.png)
 
 ## mosaics
-This module allows you to automatically create JANUS mosaics of either the full
+This module allows you to automatically create mosaics and scans of either the full
 disk of a certain body, or of the sun-illuminated part.
-```python
->>> from datetime import datetime
->>> import spiceypy as spy
->>> MK_C32 = r"C:\Users\Marcel Stefko\Kernels\JUICE\mk\juice_crema_3_2_v151.tm"
->>> spy.furnsh(MK_C32)
 
->>> from mosaics import JanusMosaicGenerator
+See tutorials:
+ - **[JANUS mosaics](doc/JANUS_mosaics.md)**
+ - **[MAJIS scans](doc/MAJIS_scans.md)**
 
-# JANUS disk mosaic of Callisto during 14C6 ingress
->>> jmg = JanusMosaicGenerator("CALLISTO", "min", "deg")
->>> start_time = datetime.strptime("2031-04-25T18:40:47", "%Y-%m-%dT%H:%M:%S")
->>> dm = jmg.generate_optimized_mosaic_iterative(start_time,
-                                                 max_exposure_time_s=15,
-                                                 max_smear=0.25,
-                                                 stabilization_time_s=5,
-                                                 no_of_filters=4,
-                                                 extra_margin=0.05)
-''''Iteration no. 1 out of 30
-         Growth factor estimate:    1.004
-         Margin estimate:           0.054
-         Duration estimate:         1.00000 min
-
-...
-
-Iteration no. 4 out of 30
-         Growth factor estimate:    1.123
-         Margin estimate:           0.173
-         Duration estimate:         26.51667 min
-
-*** STOP ITERATION - EQUILLIBRIUM REACHED ***
-
-JANUS MOSAIC ITERATIVE GENERATOR REPORT:
- Target: CALLISTO
- No of filters: 4
- Max smear: 0.25 px
- Overlap: 0.100
- Stabilization time: 5.000 s
- JUICE slew rate: 1.500 deg / min
- Start time: 2031-04-25T18:40:47
- End time:   2031-04-25T19:07:18
- Duration: 0:26:31
- Total number of images: 48 (12 positions, 4 filters at each position).
- Uncompressed data volume: 2021.376 Mbits
- Uncompressed average data rate: 1270.507 kbits/s
- Calculated max exposure time: 15.000 s
- Used exposure time:           15.000 s
- Used dwell time: 80.000 s (1.333 min in generator)
-
- No of iterations: 30
- Requested margin: 5.000 $
- Real margin:      5.000 %
- Growth factor:    1.123
-'''
->>> print(dm.generate_PTR(decimal_places=3))
-```
-
-```xml
-<block ref="OBS">
-	<startTime> 2031-04-25T18:40:47 </startTime>
-	<endTime> 2031-04-25T19:07:18 </endTime>
-	<attitude ref="track">
-		<boresight ref="SC_Zaxis"/>
-		<target ref="CALLISTO"/>
-		<offsetRefAxis frame="SC">
-			<x>1.0</x>
-			<y>0.0</y>
-			<z>0.0</z>
-		</offsetRefAxis>
-		<offsetAngles ref="raster">
-			<startTime>2031-04-25T18:41:47</startTime>
-			<xPoints>3</xPoints>
-			<yPoints>4</yPoints>
-			<xStart units="deg">-1.438</xStart>
-			<yStart units="deg">-1.653</yStart>
-			<xDelta units="deg">1.438</xDelta>
-			<yDelta units="deg">1.102</yDelta>
-			<pointSlewTime units="min">0.735</pointSlewTime>
-			<lineSlewTime units="min">0.958</lineSlewTime>
-			<dwellTime units="min">1.333</dwellTime>
-			<lineAxis>Y</lineAxis>
-			<keepLineDir>false</keepLineDir>
-		</offsetAngles>
-		<phaseAngle ref="powerOptimised">
-			<yDir> false </yDir>
-		</phaseAngle>
-	</attitude>
-</block>
-```
-
-```python
->>> dm.plot()
-```
-
-![](doc/img/JANUS_disk_mosaic.png)
-
-```python
-# JANUS mosaic of sun-illuminated surface of Europa during 6E1 egress
->>> start_time = datetime.strptime("2030-09-17T12:30:00", "%Y-%m-%dT%H:%M:%S")
->>> jmg = JanusMosaicGenerator("EUROPA", "min", "deg")
->>> cm = jmg.generate_sunside_mosaic(start_time,
-                                     duration_guess_minutes=30,
-                                     max_exposure_time_s=20,
-                                     max_smear=0.25,
-                                     stabilization_time_s=5,
-                                     no_of_filters=4,
-                                     extra_margin=0.05,
-                                     overlap=0.15)
->>> print(cm.generate_PTR(decimal_places=3)
-```
-```xml
-<block ref="OBS">
-	<startTime> 2030-09-17T12:30:00 </startTime>
-	<endTime> 2030-09-17T12:48:44 </endTime>
-	<attitude ref="track">
-		<boresight ref="SC_Zaxis"/>
-		<target ref="EUROPA"/>
-		<offsetRefAxis frame="SC">
-			<x>1.0</x>
-			<y>0.0</y>
-			<z>0.0</z>
-		</offsetRefAxis>
-		<offsetAngles ref="custom">
-			<startTime>2030-09-17T12:31:00</startTime>
-			<deltaTimes units='min'>   0.246  0.246  0.772  0.246  0.246  0.675  0.246  0.246  0.675  0.246  0.246  0.675  0.246  0.246  0.675  0.246  0.246  0.675  0.246  0.246  0.772  0.246  0.246   1.54  0.246  0.246  0.675  0.246  0.246  0.675  0.246  0.246  0.675  0.246  0.246  0.675  0.246  0.246  0.675  0.246  0.246  0.246 </deltaTimes>
-			<xAngles units='deg'>       -0.0   -0.0   -0.0  -1.16  -1.16  -1.16  -1.16  -1.16  -1.16  -1.16  -1.16  -1.16  -1.16  -1.16  -1.16  -1.16  -1.16  -1.16  -1.16  -1.16  -1.16   -0.0   -0.0   -0.0  -2.32  -2.32  -2.32  -2.32  -2.32  -2.32  -2.32  -2.32  -2.32  -2.32  -2.32  -2.32  -2.32  -2.32  -2.32  -2.32  -2.32  -2.32 </xAngles>
-			<xRates units='deg/min'>     0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0 </xRates>
-			<yAngles units='deg'>       2.53   2.53   2.53   2.53   2.53   2.53   1.52   1.52   1.52  0.506  0.506  0.506 -0.506 -0.506 -0.506  -1.52  -1.52  -1.52  -2.53  -2.53  -2.53  -2.53  -2.53  -2.53  -2.53  -2.53  -2.53  -1.52  -1.52  -1.52 -0.506 -0.506 -0.506  0.506  0.506  0.506   1.52   1.52   1.52   2.53   2.53   2.53 </yAngles>
-			<yRates units='deg/min'>     0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0 </yRates>
-		</offsetAngles>
-		<phaseAngle ref="powerOptimised">
-			<yDir> false </yDir>
-		</phaseAngle>
-	</attitude>
-</block>
-```
-```python
->>> cm.plot()
-```
-
-![](doc/img/JANUS_sunside_mosaic.png)
-
-```python
->>> spy.unload(MK_C32)
->>> MK_C30 = r"C:\Users\Marcel Stefko\Kernels\JUICE\mk\juice_crema_3_0_v151.tm"
->>> spy.furnsh(MK_C30)
-
-# Jupiter mosaic during perijove
->>> start_time = datetime.strptime("2030-05-31T22:40:47", "%Y-%m-%dT%H:%M:%S")
->>> jmg = JanusMosaicGenerator("JUPITER", "min", "deg")
->>> dm = jmg.generate_optimized_mosaic_iterative(start_time,
-                                                 max_exposure_time_s=60,
-                                                 max_smear=0.25,
-                                                 stabilization_time_s=5,
-                                                 no_of_filters=12,
-                                                 extra_margin=0.05)
->>> dm.plot()
-```
-
-![](doc/img/JANUS_Jupiter_mosaic.png)
+Example scripts are also available in the [examples](examples/) folder.
 
 ## flybys.py
 Tools for analyzing various properties of flybys such as surface coverage, resolution,
