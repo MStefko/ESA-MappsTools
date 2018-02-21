@@ -7,19 +7,19 @@ and generating mosaic instructions.
 
 ### Resource analysis of MAPPS datapacks
 
-![](img/power_data_graph.png)
+![](doc/img/power_data_graph.png)
 
 ### Generation of JANUS mosaics and PTR requests
 
 One can generate either a full-disk mosaic, or mosaic of the sun-illuminated
 surface of a body.
 
-<img src="img/mosaic_14C6_sunside_JANUS.png" width="450"> ![](img/video_14C6_sunside_JANUS.mp4)
+<img src="doc/img/mosaic_14C6_sunside_JANUS.png" width="450"> ![](doc/img/video_14C6_sunside_JANUS.mp4)
 
 ### Generation of MAJIS slews and PTR requests
 Again, the slew can either cover the whole disk, or only the sun-illuminated portion.
 
-<img src="img/scan_22C11_full_MAJIS.png" width="450"> ![](img/video_22C11_full_MAJIS.mp4)
+<img src="doc/img/scan_22C11_full_MAJIS.png" width="450"> ![](doc/img/video_22C11_full_MAJIS.mp4)
 
 ### Timestamp processing
 Translate between relative and absolute timestamps in MAPPS config files, e.g.
@@ -77,7 +77,7 @@ Perform analysis of consumed resources on a MAPPS scenario.
 >>> plt.show()
 ```
 
-![](img/power_graph.png)
+![](doc/img/power_graph.png)
 
 ```python
 >>> from power_analysis import DataConsumptionGraph
@@ -105,7 +105,7 @@ Perform analysis of consumed resources on a MAPPS scenario.
 >>> plt.show()
 ```
 
-![](img/data_graph.png)
+![](doc/img/data_graph.png)
 
 ## mosaics
 This module allows you to automatically create JANUS mosaics of either the full
@@ -203,7 +203,7 @@ JANUS MOSAIC ITERATIVE GENERATOR REPORT:
 >>> dm.plot()
 ```
 
-![](img/JANUS_disk_mosaic.png)
+![](doc/img/JANUS_disk_mosaic.png)
 
 ```python
 # JANUS mosaic of sun-illuminated surface of Europa during 6E1 egress
@@ -249,7 +249,7 @@ JANUS MOSAIC ITERATIVE GENERATOR REPORT:
 >>> cm.plot()
 ```
 
-![](img/JANUS_sunside_mosaic.png)
+![](doc/img/JANUS_sunside_mosaic.png)
 
 ```python
 >>> spy.unload(MK_C32)
@@ -268,7 +268,7 @@ JANUS MOSAIC ITERATIVE GENERATOR REPORT:
 >>> dm.plot()
 ```
 
-![](img/JANUS_Jupiter_mosaic.png)
+![](doc/img/JANUS_Jupiter_mosaic.png)
 
 ## flybys.py
 Tools for analyzing various properties of flybys such as surface coverage, resolution,
@@ -311,11 +311,11 @@ Numpy version: 1.13.3'
 >>> plt.show()
 ```
 
-![](img/14C6_map.png)
+![](doc/img/14C6_map.png)
 
 ```python
 >>> C.plot_profile(plt.gcf())
 >>> plt.show()
 ```
 
-![](img/14C6_profile.png)
+![](doc/img/14C6_profile.png)
