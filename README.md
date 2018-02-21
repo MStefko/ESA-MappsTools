@@ -15,15 +15,19 @@ One can generate either a full-disk mosaic, or mosaic of the sun-illuminated
 surface of a body.
 
 | Python plot | Resulting slew |
-| :--------: | -------- |
-| <img src="doc/img/mosaic_14C6_sunside_JANUS.png" width="450"> | ![](doc/img/video_22C11_full_MAJIS.mp4) |
+| :--------: | :--------: |
+| <img src="doc/img/mosaic_14C6_sunside_JANUS.png" width="450"> | ![](doc/img/video_14C6_sunside_JANUS.mp4) |
 
- ![](doc/img/video_14C6_sunside_JANUS.mp4)
+
 
 ## Generation of MAJIS slews and PTR requests
 Again, the slew can either cover the whole disk, or only the sun-illuminated portion.
 
-<img src="doc/img/scan_22C11_full_MAJIS.png" width="450">
+| Python plot | Resulting slew |
+| :--------: | :--------: |
+| <img src="doc/img/scan_22C11_full_MAJIS.png" width="450"> | ![](doc/img/video_22C11_full_MAJIS.mp4) |
+
+
 
 ## Timestamp processing
 Translating between relative and absolute timestamps in MAPPS config files, e.g.
@@ -37,30 +41,22 @@ Example scripts are also available in the [examples](examples/) folder.
 This module allows you to automatically create mosaics and scans of either the full
 disk of a certain body, or of the sun-illuminated part.
 
-See tutorials:
  - **[JANUS mosaics](doc/JANUS_mosaics.md)**
  - **[MAJIS scans](doc/MAJIS_scans.md)**
 
 
-
-
 ## timestamps
-
 Process timestamps in ITL files.
 
-See tutorial:
  - **[timestamps](doc/timestamps.md)**
 
 
 ## resource_analysis
 Perform analysis of consumed resources on a MAPPS scenario.
 
-See tutorial:
  - **[resource_analysis](doc/resource_analysis.md)**
 
 ## flybys
-
 Analyze various properties of flybys.
 
-See tutorial:
  - **[flybys](doc/flybys.md)**
