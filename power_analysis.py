@@ -17,8 +17,8 @@ class PowerConsumptionGraph:
     """Contains information about power consumption timeline during a specified flyby."""
 
     def __init__(self, name: str, CA_timestamp: str, sheet_path: str,
-                 add_HAA: bool = True, power_limit_Wh: float = None,
-                 time_interval_h = None) -> None:
+                 add_HAA: bool = False, power_limit_Wh: float = None,
+                 time_interval_h: Tuple[float, float] = None) -> None:
         """ Creates a power consumption analysis graph from a MAPPS resources datapack.
 
         :param name: Name of analysis (or flyby)
@@ -32,7 +32,6 @@ class PowerConsumptionGraph:
         self.CA = iso8601.parse_date(CA_timestamp)
         self.time_step_s = self._parse_time_step_from_sheet(sheet_path)
         self.power_limit_Wh = power_limit_Wh
-
 
         # Read the MAPPS datapack, skipping the comment rows and the row with units
         df = pd.read_csv(sheet_path, skiprows=list(range(22)) + [23], index_col=0)
@@ -52,7 +51,7 @@ class PowerConsumptionGraph:
         self.data = df
 
         if time_interval_h is not None:
-            if len(time_interval_h)!=2 or any([not isinstance(n, (int, float)) for n in time_interval_h]):
+            if len(time_interval_h) != 2 or any([not isinstance(n, (int, float)) for n in time_interval_h]):
                 raise ValueError(f"Invalid time_interval_h: {time_interval_h}")
             cutoff_bottom = df.loc[df.index >= time_interval_h[0]]
             cutoff_top = cutoff_bottom.loc[cutoff_bottom.index <= time_interval_h[1]]
@@ -81,7 +80,7 @@ class PowerConsumptionGraph:
         print(message)
         return message
 
-    def plot(self) -> plt.Figure:
+    def plot(self, plot_outline: bool = True) -> plt.Figure:
         """ Generate stacked power consumption plot.
         Needs to be shown with plt.show() afterwards
         """
@@ -91,10 +90,11 @@ class PowerConsumptionGraph:
 
         ax_right: plt.Axes = ax_left.twinx()
         self._get_only_instrument_dataframe().plot.area(stacked=True, ax=ax_left)
-        ax_left.set_xlim(X_LIMIT_H)
+        ax_left.set_xlim(left=X_LIMIT_H[0], right=X_LIMIT_H[1])
+        ax_left.set_ylabel('Power [W]')
         # Plot the black power requirement line
-        ax_left.plot(*self._get_power_profile(), label='LIMIT', c='k', lw=3)
-        plt.ylabel('Power [W]')
+        if plot_outline:
+            ax_left.plot(*self._get_power_profile(), label='LIMIT', c='k', lw=3)
         plt.title(f'{self.name} - power consumption')
         # Reverse the up-down order of labels in the legend because it looks better
         handles, labels = ax_left.get_legend_handles_labels()
@@ -103,7 +103,7 @@ class PowerConsumptionGraph:
         cumulative_power = self.get_cumulative_power()
         # Plot the cumulative power consumption on the right side
         ax_right.set_ylabel('Total consumed power [Wh]')
-        ax_right.set_xlim(X_LIMIT_H)
+        ax_right.set_xlim(left=X_LIMIT_H[0], right=X_LIMIT_H[1])
         ax_right.plot(cumulative_power.index, cumulative_power,
                       label='CONSUMED', c='g', lw=3)
         ax_right.set_ylim(bottom=0.0)
@@ -162,6 +162,7 @@ class PowerConsumptionGraph:
         haa = pd.Series(data=np.zeros(len(df.index)), index=df.index)
 
         def get_HAA_power_value_for_time_from_CA(time_h: float) -> float:
+            """ Power value is 15W during interval (-12h, 12h) """
             return 15.0 if abs(time_h) < 12 else 0.0
 
         for time in haa.index:
@@ -184,9 +185,9 @@ class PowerConsumptionGraph:
                     if "Seconds" in line:
                         value = value
                     elif "Minutes" in line:
-                        value = 60 * value
+                        value *= 60
                     elif "Hours" in line:
-                        value = 3600 * value
+                        value *= 3600
                     else:
                         raise ValueError("Unable to parse time unit from 11-th line of sheet.")
                     return value
@@ -210,7 +211,7 @@ class DataConsumptionGraph:
 
     def __init__(self, name: str, CA_timestamp: str, sheet_path: str,
                  add_HAA: bool = True, data_limit_Mbits: float = None,
-                 time_interval_h = None) -> None:
+                 time_interval_h: Tuple[float, float] = None) -> None:
         """ Creates a powerdata consumption analysis graph from a MAPPS resources datapack.
 
         :param name: Name of analysis (or flyby)
@@ -253,8 +254,6 @@ class DataConsumptionGraph:
         if add_HAA:
             self._add_HAA()
 
-
-
     @staticmethod
     def _lstrip_characters(column_label: str, no_of_characters) -> str:
         return column_label[no_of_characters:]
@@ -288,7 +287,7 @@ class DataConsumptionGraph:
         """
         # Create pandas stacked plot and format the axis limits
         ax: plt.Axes = self._get_only_instrument_dataframe(self.data_accum).plot.area(stacked=True)
-        ax.set_xlim([-10.0, 10.0])
+        ax.set_xlim(left=-10.0, right=10.0)
         plt.ylabel('Total acquired data [Mbits]')
         plt.title(f'{self.name} - data acquired')
         # Reverse the up-down order of labels in the legend because it looks better
@@ -302,7 +301,7 @@ class DataConsumptionGraph:
         if self.data_limit_Mbits is not None:
             ax.plot([-10.0, 10.0], [self.data_limit_Mbits] * 2, label='LIMIT', c='r', lw=3)
             if ax.get_ylim()[1] < self.data_limit_Mbits:
-                ax.set_ylim([0.0, 1.1*self.data_limit_Mbits])
+                ax.set_ylim(bottom=0.0, top=1.1*self.data_limit_Mbits)
         ax.legend(handles[::-1], labels[::-1], loc='upper left')
         return plt.gcf()
 
@@ -333,6 +332,7 @@ class DataConsumptionGraph:
         haa = pd.Series(data=np.zeros(len(self.data_rate.index)), index=self.data_rate.index)
 
         def get_HAA_data_rate_for_time_from_CA(time_h: float) -> float:
+            """ HAA produces 2kbps per second. """
             return 2.0 if abs(time_h) < 12 else 0.0
 
         for time in haa.index:
@@ -346,22 +346,8 @@ class DataConsumptionGraph:
         :param sheet_path: Path to MAPPS datapack
         :return: Time step value in seconds
         """
-        with open(sheet_path) as f:
-            for idx, line in enumerate(f):
-                if idx == 10:
-                    float_strings = re.findall("\d+\.\d+", line)
-                    if len(float_strings) != 1:
-                        raise ValueError("11-th line of sheet doesn't contain exactly 1 float.")
-                    value = float(float_strings[0])
-                    if "Seconds" in line:
-                        value = value
-                    elif "Minutes" in line:
-                        value = 60 * value
-                    elif "Hours" in line:
-                        value = 3600 * value
-                    else:
-                        raise ValueError("Unable to parse time unit from 11-th line of sheet.")
-                    return value
+        # copy the method from power class to prevent code duplication
+        return PowerConsumptionGraph._parse_time_step_from_sheet(sheet_path)
 
     def _transform_timestamp_to_hours_from_CA(self, UTC_timestamp: str) -> float:
         """ Calculates delta time in hours from CA.
@@ -374,11 +360,11 @@ class DataConsumptionGraph:
 
 
 if __name__ == '__main__':
-    pcg = PowerConsumptionGraph("14C6", '2031-04-25T22:40:47',
-                                r"tests\14c6_test_attitude_and_data.csv",
-                                power_limit_Wh=4065.0)
-    dcg = DataConsumptionGraph("14C6", '2031-04-25T22:40:47',
-                               r"tests\14c6_test_attitude_and_data.csv",
+    pcg = PowerConsumptionGraph("22C11", "2031-09-27T04:38:01",
+                                r"C:\MAPPS\JUICE_SO\MAPPS\OUTPUT_DATA\22c11_payload_resources.csv",
+                                power_limit_Wh=3746.0)
+    dcg = DataConsumptionGraph("22C11", "2031-09-27T04:38:01",
+                               r"C:\MAPPS\JUICE_SO\MAPPS\OUTPUT_DATA\22c11_payload_resources.csv",
                                data_limit_Mbits=30000.0)
 
     pcg.print_total_power_consumed()
@@ -390,5 +376,5 @@ if __name__ == '__main__':
     pcg.plot()
     plt.show()
 
-    #dcg.plot()
-    #plt.show()
+    dcg.plot()
+    plt.show()
