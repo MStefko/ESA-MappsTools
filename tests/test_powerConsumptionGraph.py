@@ -7,7 +7,7 @@ class TestPowerConsumptionGraph14C6(TestCase):
     def setUp(self):
         self.pcg = PowerConsumptionGraph("14C6", '2031-04-25T22:40:47',
             abspath(join(split(__file__)[0],'14c6_test_power_and_data.csv')),
-            power_limit_Wh=4065.0)
+            power_limit_Wh=4065.0, add_HAA=True)
 
     def test_print_total_power_consumed(self):
         ref = "Total power consumed: 4199.2 (103.3% of limit)."
@@ -34,7 +34,7 @@ class TestPowerConsumptionGraph6E1(TestCase):
     def setUp(self):
         self.pcg = PowerConsumptionGraph("6E1", '2030-10-05T02:24:00',
             abspath(join(split(__file__)[0],'6e1_test_power.csv')),
-            power_limit_Wh=4000.0, time_interval_h=[-8.0, 12.0],
+            power_limit_Wh=4000.0, time_interval_h=(-8.0, 12.0),
             add_HAA=False)
 
     def test_print_total_power_consumed(self):
