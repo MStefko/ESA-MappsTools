@@ -1,6 +1,6 @@
 # coding=utf-8
 from datetime import datetime, timedelta
-from typing import Tuple
+from typing import Tuple, Union
 
 from mosaics.CustomMosaic import CustomMosaic
 from mosaics.DiskMosaic import DiskMosaic
@@ -47,18 +47,21 @@ class JanusMosaicGenerator:
             self.JANUS_FOV_SIZE_DEG[0], self.JANUS_FOV_RES[0])
 
     def generate_optimized_mosaic(self, time: datetime, max_exposure_time_s: float,
-                                  duration_guess_minutes: float = 30, stabilization_time_s: float = 0.0,
-                                  max_smear: float = 0.25, no_of_filters: int = 1, margin: float = 0.1) -> DiskMosaic:
+                                  stabilization_time_s: float = 0.0, duration_guess_minutes: float = 30,
+                                  max_smear: float = 0.25, no_of_filters: int = 1, extra_margin: float = 0.1,
+                                  overlap: float = 0.1, sunside: bool = False) -> Union[DiskMosaic, CustomMosaic]:
         """ Creates a mosaic with image positions optimized for minimal frame number,
         and minimal distance between frames, while preserving required overlap and margin.
 
         :param time: Start time of mosaic
         :param max_exposure_time_s: Maximal exposure time for one frame
-        :param duration_guess_minutes: Initial guess for duration of mosaic
         :param stabilization_time_s: Stabilization time after each position change
+        :param duration_guess_minutes: Initial guess for duration of mosaic
         :param max_smear: Maximal allowed smear in units of pixels
         :param no_of_filters: Number of filters used per each position
-        :param margin: Extra space left around the body disk in units of body radii
+        :param extra_margin: Extra space left around the body disk in units of body radii
+        :param overlap: Minimal required overlap of individual frames
+        :param sunside: If true, only the sun-illuminated surface is covered. Default false.
         :return: Optimized DiskMosaic
         """
         if max_exposure_time_s <= 0.0:
@@ -80,12 +83,19 @@ class JanusMosaicGenerator:
             used_exposure_time_s * no_of_filters + \
             self.FILTER_SWITCH_DURATION_SECONDS * (no_of_filters - 1)
 
+        time_interval = (time, time + timedelta(minutes=duration_guess_minutes))
+        ang_diameters = [get_body_angular_diameter_rad(self.probe, self.target, t) for t in
+                         time_interval]
+        ratio = ang_diameters[1] / ang_diameters[0]
+        margin = (ratio - 1 if ratio > 1 else 0.0) + extra_margin
+
         dmg = DiskMosaicGenerator(self.fov_size, "JUICE", self.target, time, self.time_unit,
                                   self.angular_unit, convertTimeFromTo(dwell_time_s, "sec", self.time_unit),
                                   self.slew_rate_in_required_units)
-
-        overlap = 0.1
-        dm = dmg.generate_symmetric_mosaic(margin=margin, min_overlap=overlap)
+        if sunside:
+            dm = dmg.generate_sunside_mosaic(margin=margin, min_overlap=overlap)
+        else:
+            dm = dmg.generate_symmetric_mosaic(margin=margin, min_overlap=overlap)
 
         image_count = len(dm.center_points) * no_of_filters
         duration = dm.end_time - dm.start_time
@@ -253,90 +263,6 @@ f'''JANUS MOSAIC ITERATIVE GENERATOR REPORT:
         print(report)
         return dm
 
-    def generate_sunside_mosaic(self, time: datetime, max_exposure_time_s: float,
-                                stabilization_time_s: float = 0.0, duration_guess_minutes: float = 30,
-                                max_smear: float = 0.25, no_of_filters: int = 1, extra_margin: float = 0.05,
-                                overlap: float = 0.1) -> CustomMosaic:
-        """ Generates mosaic of the sun-illuminated visible part of the body's surface.
-
-        :param time: Time of start of mosaic
-        :param max_exposure_time_s: Maximal exposure time per filter per position
-        :param stabilization_time_s: Time to stabilize after each slew
-        :param duration_guess_minutes: Guess for duration of whole mosaic
-        :param max_smear: Maximal smear per frame in pixels
-        :param no_of_filters: Number of filters used per position
-        :param extra_margin: Extra margin around disk in units of body radii
-        :param overlap: Minimal required overlap of individual frames
-        :return: CustomMosaic of the sun-illuminated surface
-        """
-        if max_exposure_time_s <= 0.0:
-            raise ValueError("max_exposure_time must be positive.")
-        if stabilization_time_s < 0.0:
-            raise ValueError("stabilization_time_s must be non-negative.")
-        if max_smear <= 0.0:
-            raise ValueError("max_smear must be positive")
-        if no_of_filters < 1:
-            raise ValueError("no_of_filters must be at least 1")
-
-        # check highest possible exposure time based on smear
-        exposure_times_s = [self._get_max_dwell_time_s(max_smear, time + timedelta(minutes=m)) for m in
-                            range(int(duration_guess_minutes))]
-        used_exposure_time_s = min(exposure_times_s + [max_exposure_time_s])
-        dwell_time_s = stabilization_time_s + \
-            used_exposure_time_s * no_of_filters + \
-            self.FILTER_SWITCH_DURATION_SECONDS * (no_of_filters - 1)
-        time_interval = (time, time + timedelta(minutes=duration_guess_minutes))
-        ang_diameters = [get_body_angular_diameter_rad(self.probe, self.target, t) for t in
-                         time_interval]
-        ratio = ang_diameters[1] / ang_diameters[0]
-        margin = (ratio - 1 if ratio > 1 else 0.0) + extra_margin
-
-        dmg = DiskMosaicGenerator(self.fov_size, "JUICE", self.target, time, self.time_unit,
-                                  self.angular_unit, convertTimeFromTo(dwell_time_s, "sec", self.time_unit),
-                                  self.slew_rate_in_required_units)
-        dm = dmg.generate_symmetric_mosaic(margin=margin, min_overlap=overlap)
-
-        tiles = dm.rectangles
-        illuminated_shape_deg = get_illuminated_shape("JUICE", self.target, time, self.angular_unit)
-        filtered_center_points = [t.center for t in tiles if
-                                  t.polygon.overlaps(illuminated_shape_deg) or illuminated_shape_deg.contains(
-                                      t.polygon)]
-
-        # solve Traveling Salesman Problem for the center points
-        distances = []
-        for i, p in enumerate(filtered_center_points[:]):
-            distances.append([])
-            for j, q in enumerate(filtered_center_points[:]):
-                distances[i].append(np.sqrt((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2))
-        indices = solve_tsp(distances, optim_steps=10)
-        sorted_center_points = [filtered_center_points[i] for i in indices]
-
-        cm = CustomMosaic(self.fov_size, self.target, time, self.time_unit, self.angular_unit,
-                          convertTimeFromTo(dwell_time_s, "sec", self.time_unit),
-                          1.0/self.slew_rate_in_required_units, sorted_center_points)
-
-        duration = cm.end_time - cm.start_time
-        image_count = no_of_filters * len(cm.center_points)
-        report = \
-f'''JANUS SUNSIDE MOSAIC GENERATOR REPORT:
- Target: {self.target}
- No of filters: {no_of_filters}
- Max smear: {max_smear} px
- Stabilization time: {stabilization_time_s:.3f} s
- {self.probe} slew rate: {self.slew_rate_in_required_units:.3f} {self.angular_unit} / {self.time_unit}
- Start time: {cm.start_time.isoformat()}
- End time:   {cm.end_time.isoformat()}
- Duration: {duration} 
- Total number of images: {image_count} ({len(cm.center_points)} positions, {no_of_filters} filters at each position).
- Uncompressed data volume: {image_count * self.JANUS_max_Mbits_per_image:.3f} Mbits
- Uncompressed average data rate: {image_count * self.JANUS_max_Mbits_per_image * 1000 / duration.total_seconds():.3f} kbits/s
- Calculated max exposure time: {min(exposure_times_s):.3f} s
- Used exposure time: {used_exposure_time_s:.3f} s
- Used dwell time: {dwell_time_s:.3f} s ({dmg.dwell_time:.3f} {dmg.time_unit} in generator)
-'''
-        print(report)
-        return cm
-
 
 if __name__ == '__main__':
     MK_C32 = r"C:\Users\Marcel Stefko\Kernels\JUICE\mk\juice_crema_3_2_v151.tm"
@@ -344,13 +270,14 @@ if __name__ == '__main__':
 
     start_time = datetime.strptime("2030-09-17T12:30:00", "%Y-%m-%dT%H:%M:%S")
     jmg = JanusMosaicGenerator("EUROPA", "min", "deg")
-    cm = jmg.generate_sunside_mosaic(start_time,
-                                     max_exposure_time_s=20,
-                                     max_smear=0.25,
-                                     stabilization_time_s=5,
-                                     no_of_filters=4,
-                                     extra_margin=0.05,
-                                     overlap=0.15)
+    cm = jmg.generate_optimized_mosaic(start_time,
+                                       max_exposure_time_s=20,
+                                       max_smear=0.25,
+                                       stabilization_time_s=5,
+                                       no_of_filters=4,
+                                       extra_margin=0.05,
+                                       overlap=0.10,
+                                       sunside=True)
 
     cm.plot()
     print(cm.generate_PTR(decimal_places=2))

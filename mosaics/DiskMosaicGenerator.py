@@ -1,11 +1,13 @@
 # coding=utf-8
 from datetime import datetime
-from typing import Tuple
+from typing import Tuple, List
 
 import numpy as np
 
+from mosaics.CustomMosaic import CustomMosaic
 from mosaics.DiskMosaic import DiskMosaic
-from mosaics.misc import get_body_angular_diameter_rad
+from mosaics.misc import get_body_angular_diameter_rad, get_illuminated_shape, Rectangle
+from mosaics.tsp_solver import solve_tsp
 from mosaics.units import angular_units, time_units, convertAngleFromTo
 
 
@@ -53,7 +55,7 @@ class DiskMosaicGenerator:
         self.target_angular_diameter = convertAngleFromTo(get_body_angular_diameter_rad(self.probe, self.target, start_time),
                                                           "rad", self.angular_unit)
 
-    def generate_symmetric_mosaic(self, margin: float = 0.2, min_overlap: float = 0.1):
+    def generate_symmetric_mosaic(self, margin: float = 0.2, min_overlap: float = 0.1) -> DiskMosaic:
         """
 
         :param margin: Extra area around the target to be covered by the mosaic, in units of diameter
@@ -73,6 +75,39 @@ class DiskMosaicGenerator:
         line_slew_time, point_slew_time = tuple(abs(step / self.slew_rate) for step in steps)
         return DiskMosaic(self.fov_size, self.target, self.start_time, self.time_unit, self.angular_unit,
                           self.dwell_time, point_slew_time, line_slew_time, starts, steps, points)
+
+    def generate_sunside_mosaic(self, margin: float = 0.5, min_overlap: float = 0.1) -> CustomMosaic:
+        """
+
+        :param margin: Extra area around the target to be covered by the mosaic, in units of diameter
+        (value 0.0 corresponds to no extra margin)
+        :param min_overlap: Minimal value for overlap of neighboring images (value of 0.1 means 10% of image
+        on either side overlaps with the neighbor)
+        :return: Generated CustomMosaic
+        """
+        if margin <= -1.0:
+            raise ValueError("margin must be larger than -1.0")
+        if min_overlap < 0.0 or min_overlap >= 1.0:
+            raise ValueError("min_overlap must be in the interval <0.0, 1.0)")
+        vertical_diameter_to_cover = (self.target_angular_diameter * (1.0 + margin))
+        points_y, start_y, step_y = self._optimize_steps_centered(
+            vertical_diameter_to_cover, self.fov_size[1], min_overlap)
+        illuminated_shape = get_illuminated_shape(self.probe, self.target, self.start_time, self.angular_unit)
+        x_shape_coords = np.array([c[0] for c in list(illuminated_shape.exterior.coords)])
+        shape_width = (max(x_shape_coords) - min(x_shape_coords)) * (1.0 + margin)
+        points_x, start_x, step_x = self._optimize_steps_centered(shape_width, self.fov_size[0], min_overlap)
+        # translate center to center of x_shape
+        start_x += (max(x_shape_coords) + min(x_shape_coords)) / 2
+
+        rectangles = self._generate_grid_rectangles((points_x, points_y), (start_x, start_y), (step_x, step_y))
+        center_points = [r.center for r in rectangles if r.polygon.overlaps(illuminated_shape)
+                                                      or illuminated_shape.contains(r.polygon)]
+
+        # solve Traveling Salesman Problem for the center points
+        sorted_center_points = self._optimize_center_points_tsp(center_points)
+
+        return CustomMosaic(self.fov_size, self.target, self.start_time, self.time_unit, self.angular_unit,
+                            self.dwell_time, 1.0/self.slew_rate, sorted_center_points)
 
     @staticmethod
     def _optimize_steps_centered(diameter_to_cover: float, fov_width: float, min_overlap: float) \
@@ -109,6 +144,41 @@ class DiskMosaicGenerator:
                 center_img_loc = 0.0
                 step_size = (center_img_loc - edge_img_loc) / (no_of_steps / 2)
                 return (no_of_steps + 1, edge_img_loc, step_size)
+
+    def _generate_grid_rectangles(self, no_points: Tuple[int, int], starts: Tuple[float, float], steps: Tuple[float, float])\
+            -> List[Rectangle]:
+        """
+
+        :param no_points: Number of points (x, y)
+        :param starts: Start coordinate (x, y)
+        :param steps: Step for each point (x, y)
+        :return: List of Rectangles
+        """
+        result = []
+        for nx in range(no_points[0]):
+            line = []
+            for ny in range(no_points[1]):
+                line.append(Rectangle((starts[0] + nx*steps[0], starts[1] + ny*steps[1]),
+                                      self.fov_size))
+            if nx % 2 == 1:
+                line = list(reversed(line))
+            result += line
+        return result
+
+    @staticmethod
+    def _optimize_center_points_tsp(center_points: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
+        """ Solves the traveling salesman problem for given list of points using euclidean distances.
+
+        :param center_points: List of 2d (x,y) points to reorder
+        :return: Reordered list of points
+        """
+        distances = []
+        for i, p in enumerate(center_points[:]):
+            distances.append([])
+            for j, q in enumerate(center_points[:]):
+                distances[i].append(np.sqrt((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2))
+        indices = solve_tsp(distances, optim_steps=10)
+        return [center_points[i] for i in indices]
 
 
 if __name__ == '__main__':
