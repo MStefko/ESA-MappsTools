@@ -93,8 +93,8 @@ class ScanGenerator:
             raise ValueError("min_overlap must be in the interval <0.0, 1.0)")
         diameter_to_cover = (self.target_angular_diameter * (1.0 + margin))
         illuminated_shape = get_illuminated_shape(self.probe, self.target, self.start_time, self.angular_unit)
-        x_shape_coords = np.array([c[0] for c in list(illuminated_shape.exterior.coords)]) * (1.0 + margin)
-        shape_width = max(x_shape_coords) - min(x_shape_coords)
+        x_shape_coords = np.array([c[0] for c in list(illuminated_shape.exterior.coords)])
+        shape_width = (max(x_shape_coords) - min(x_shape_coords)) * (1.0 + margin)
         (no_of_slews, start_x, step_x) = _optimize_steps_centered(shape_width, self.fov_width, min_overlap)
         # translate center to center of x_shape
         start_x += (max(x_shape_coords) + min(x_shape_coords)) / 2
