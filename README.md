@@ -11,7 +11,14 @@ and generating mosaic instructions.
 
 ### Generation of JANUS mosaics and PTR requests
 
-![](img/JANUS_14C6_sunside_mosaic.png) ![](img/video.mp4)
+One can generate either a full-disk mosaic, or mosaic of the sun-illuminated
+surface of a body.
+
+![](img/mosaic_14C6_sunside_JANUS)
+![](img/video_14C6_sunside_JANUS.mp4)
+
+### Generation of MAJIS slews and PTR requests
+Again, the slew can either cover the whole disk, or only the sun-illuminated portion.
 
 ## timestamps.py
  - Translate between relative and absolute timestamps in MAPPS config files, e.g.
