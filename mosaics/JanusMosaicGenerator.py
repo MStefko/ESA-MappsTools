@@ -58,7 +58,7 @@ class JanusMosaicGenerator:
         and minimal distance between frames, while preserving required overlap between
         frames and margin around the body.
 
-
+        A report of the generator is printed to standard output.
 
         :param time: Start time of mosaic as datetime object.
         :param max_exposure_time_s: Maximal exposure time for one frame in seconds,
@@ -82,7 +82,7 @@ class JanusMosaicGenerator:
         is set to 0.1, then at least 10% of given frame overlaps with its neighbor on each
         of the 4 sides. Must be between 0.0 and 1.0
         :param sunside: If set to True, only the sun-illuminated surface is covered. Otherwise
-        the whole body is imaged in a "raster" observation. Default is False - full-disk imaging..
+        the whole body is imaged in a "raster" observation. Default is False - full-disk imaging.
         :return: Optimized mosaic, a DiskMosaic in case of full-body imaging, and a CustomMosaic
         if only sun-illuminated part of body is imaged.
         """
