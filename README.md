@@ -71,7 +71,7 @@ You can now `import spice_tools`, `import spice_tools.mosaics`, etc. anywhere.
 When not using Anaconda, Windows users need to install the [Shapely](https://pypi.python.org/pypi/Shapely/1.5.17) library manually first:
  1. Download appropriate pip wheel for you from [this site](https://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely). E.g.:
    - 64-bit, python3.6: `Shapely‑1.6.4.post1‑cp36‑cp36m‑win_amd64.whl`
-   - 32-bit, python3.6: `Shapely‑1.6.4.post1‑cp37‑cp37m‑win32.whl`
+   - 32-bit, python3.7: `Shapely‑1.6.4.post1‑cp37‑cp37m‑win32.whl`
    - etc.
  2. Install it using `pip install <whl_file_name>`.
 
