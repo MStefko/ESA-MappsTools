@@ -18,6 +18,5 @@ setup(
         'iso8601>=0.1.12',
         'spiceypy>=2.1.0',
         'shapely',
-        'pandas>=0.21.0',
-        'basemap']
+        'pandas>=0.21.0']
 )

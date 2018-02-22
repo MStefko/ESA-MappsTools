@@ -60,7 +60,3 @@ Perform analysis of consumed resources on a MAPPS scenario.
 
  - **[resource_analysis](doc/resource_analysis.md)**
 
-## flybys
-Analyze various properties of flybys.
-
- - **[flybys](doc/flybys.md)**
