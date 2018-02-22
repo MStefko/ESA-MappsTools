@@ -1,5 +1,5 @@
 # SpiceTools
-This repository contains assorted modules for working with MAPPS and
+This repository contains modules for working with MAPPS and
 Spice, e.g. manipulating timestamps, analyzing power consumption,
 and generating mosaic instructions.
 
@@ -37,26 +37,53 @@ Translating between relative and absolute timestamps in MAPPS config files, e.g.
 
 For details see **[timestamps.md](doc/timestamps.md)**
 
-# Detailed features & how-tos
+# Tutorials
 
-Example scripts are also available in the [examples](examples/) folder.
+Example scripts are available in the [examples](examples/) folder.
 
-## mosaics
-This module allows you to automatically create mosaics and scans of either the full
-disk of a certain body, or of the sun-illuminated part.
-
+Tutorials:
  - **[JANUS mosaics](doc/JANUS_mosaics.md)**
  - **[MAJIS scans](doc/MAJIS_scans.md)**
-
-
-## timestamps
-Process timestamps in ITL files.
-
  - **[timestamps](doc/timestamps.md)**
-
-
-## resource_analysis
-Perform analysis of consumed resources on a MAPPS scenario.
-
  - **[resource_analysis](doc/resource_analysis.md)**
 
+# Installation instructions
+
+## Using Anaconda (recommended)
+The Anaconda environment manager will automatically download and install required
+Python version.
+
+ 1. Clone the project to a local folder.
+ 1. Navigate to project root folder in terminal.
+ 2. Create new Anaconda environment called `spice_tools` with `python3.6` and required
+ packages: `conda env create -f environment.yml`
+ 3. Run tests to see if everything is working: `python setup.py test`
+ 4. Install `spice_tools` module: `python setup.py install`
+
+You can now `import spice_tools`, `import spice_tools.mosaics`, etc. anywhere.
+
+## Without Anaconda
+
+**You need `Python 3.6.0` or higher. Check this using `python -V` in the terminal, and update if necessary.**
+
+### Windows
+When not using Anaconda, Windows users need to install the [Shapely](https://pypi.python.org/pypi/Shapely/1.5.17) library manually first:
+ 1. Download appropriate pip wheel for you from [this site](https://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely). E.g.:
+   - 64-bit, python3.6: `Shapely‑1.6.4.post1‑cp36‑cp36m‑win_amd64.whl`
+   - 32-bit, python3.6: `Shapely‑1.6.4.post1‑cp37‑cp37m‑win32.whl`
+   - etc.
+ 2. Install it using `pip install <whl_file_name>`.
+
+Afterwards, follow the following instructions for Mac/Linux.
+
+### Mac/Linux
+ 1. Clone the project to a local folder.
+ 1. Navigate to project root folder in terminal.
+ 3. Run tests to see if everything is working: `python setup.py test`
+ 4. Install `spice_tools` module: `python setup.py install`
+
+# Troubleshooting
+In case of any issues, contact [Marcel Stefko](mailto:marcel.stefko@esa.int). If you have an ESA GitLab account, you can also open an issue in the project.
+
+# Acknowledgments
+Many thanks to Andrew Annex for developing and sharing the great [SpiceyPy](https://github.com/AndrewAnnex/SpiceyPy) package.
