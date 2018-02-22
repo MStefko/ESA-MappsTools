@@ -57,6 +57,7 @@ Python version.
  1. Navigate to project root folder in terminal.
  2. Create new Anaconda environment called `spice_tools` with `python3.6` and required
  packages: `conda env create -f environment.yml`
+ 4. Activate the newly created environment: `activate spice_tools`. (Using bash, you need to do `source activate spice_tools`.)
  3. Run tests to see if everything is working: `python setup.py test`
  4. Install `spice_tools` module: `python setup.py install`
 
