@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from unittest import TestCase
 from unittest.mock import Mock
 
-from spice_tools.mosaics.CustomMosaic import CustomMosaic
+from mapps_tools.mosaics.CustomMosaic import CustomMosaic
 
 valid_start_time = datetime.strptime("2031-04-26T00:40:47", "%Y-%m-%dT%H:%M:%S")
 

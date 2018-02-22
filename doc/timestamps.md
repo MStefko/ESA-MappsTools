@@ -4,7 +4,7 @@ The timestamps package provides an easy way to convert between
 absolute and relative timestamps in ITL files.
 
 ```python
->>> from spice_tools.timestamps import TimestampProcessor
+>>> from mapps_tools.timestamps import TimestampProcessor
 # Create a processor, define closest approach time of 14C6
 >>> p = TimestampProcessor('2031-04-25T22:40:47')
 >>> p.utc2delta('2031-04-25T23:42:50')

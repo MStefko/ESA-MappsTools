@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='spice_tools',
+    name='mapps_tools',
     version='1.0',
-    packages=['spice_tools',
-              'spice_tools.mosaics'],
+    packages=['mapps_tools',
+              'mapps_tools.mosaics'],
     url='https://gitlab.esa.int/MarcelStefko/SpiceTools/',
     license='Proprietary ESA internal code - reuse outside ESA not allowed without explicit permission.',
     author='Marcel Stefko',

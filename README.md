@@ -1,4 +1,4 @@
-# SpiceTools
+# MappsTools
 This repository contains modules for working with MAPPS and
 Spice, e.g. manipulating timestamps, analyzing power consumption,
 and generating mosaic instructions.
@@ -55,18 +55,18 @@ Python version.
 
  1. Clone the project to a local folder.
  1. Navigate to project root folder `SpiceTools/` in terminal.
- 2. Create new Anaconda environment called `spice_tools` with `python3.6` and required
+ 2. Create new Anaconda environment called `mapps_tools` with `python3.6` and required
  packages:
    - `conda env create -f environment.yml`
  4. Activate the newly created environment:
-   - `activate spice_tools`
-   - (Using bash, you need to do `source activate spice_tools`.)
+   - `activate mapps_tools`
+   - (Using bash, you need to do `source activate mapps_tools`.)
  3. Run tests to see if everything is working:
    - `python setup.py test`
-   - You can now `import spice_tools`, `import spice_tools.mosaics`, etc. when you are in the root project folder `SpiceTools/`
+   - You can now `import mapps_tools`, `import mapps_tools.mosaics`, etc. when you are in the root project folder `SpiceTools/`
  4. (Optional) If you want to use the module outside of its working directory, you need to install it into the current environment:
    - `python setup.py install`
-   - You can now `import spice_tools`, `import spice_tools.mosaics`, etc. anywhere.
+   - You can now `import mapps_tools`, `import mapps_tools.mosaics`, etc. anywhere.
 
 ## Without Anaconda
 
@@ -87,10 +87,10 @@ Afterwards, follow the instructions for Mac/Linux.
  1. Navigate to project root folder `SpiceTools/` in terminal.
  3. Run tests to see if everything is working:
    - `python setup.py test`
-   - You can now `import spice_tools`, `import spice_tools.mosaics`, etc. when you are in the root project folder `SpiceTools/`
+   - You can now `import mapps_tools`, `import mapps_tools.mosaics`, etc. when you are in the root project folder `SpiceTools/`
  4. (Optional) If you want to use the module outside of its working directory, you need to install it into the local Python module index:
    - `python setup.py install`
-   - You can now `import spice_tools`, `import spice_tools.mosaics`, etc. anywhere.
+   - You can now `import mapps_tools`, `import mapps_tools.mosaics`, etc. anywhere.
 
 # Troubleshooting
 In case of any issues, contact [Marcel Stefko](mailto:marcel.stefko@esa.int). If you have an ESA GitLab account, you can also open an issue in the project.

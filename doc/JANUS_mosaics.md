@@ -18,7 +18,7 @@ Now we initialize the `JanusMosaicGenerator`, define the start time of
 mosaic, and generate mosaic according to requirements.
 
 ```python
-from spice_tools.mosaics import JanusMosaicGenerator
+from mapps_tools.mosaics import JanusMosaicGenerator
 
 # Start time of mosaic during 14C6 ingress
 # This function parses the iso8601 timestamp into a datetime object

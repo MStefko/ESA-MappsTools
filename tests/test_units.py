@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import numpy as np
 
-from spice_tools.mosaics.units import convertTimeFromTo, convertAngleFromTo
+from mapps_tools.mosaics.units import convertTimeFromTo, convertAngleFromTo
 
 
 class TestConvertTimeFromTo(TestCase):

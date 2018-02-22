@@ -7,7 +7,7 @@ import spiceypy as spy
 MK_C32 = r"C:\Users\Marcel Stefko\Kernels\JUICE\mk\juice_crema_3_2_v151.tm"
 spy.furnsh(MK_C32)
 
-from spice_tools.mosaics import JanusMosaicGenerator
+from mapps_tools.mosaics import JanusMosaicGenerator
 
 # Start time of mosaic during 14C6 ingress
 # This function parses the iso8601 timestamp into a datetime object

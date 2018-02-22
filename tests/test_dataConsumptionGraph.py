@@ -1,7 +1,7 @@
 from unittest import TestCase
 from os.path import split, join, abspath
 
-from spice_tools.resource_analysis import DataConsumptionGraph
+from mapps_tools.resource_analysis import DataConsumptionGraph
 
 
 class TestDataConsumptionGraph(TestCase):

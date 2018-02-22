@@ -18,7 +18,7 @@ Now we initialize the `MajisScanGenerator`, define the start time of
 scan and generate full-disk scan according to requirements.
 
 ```python
-from spice_tools.mosaics import MajisScanGenerator
+from mapps_tools.mosaics import MajisScanGenerator
 
 # Start time of scan during 22C11 egress
 # This function parses the iso8601 timestamp into a datetime object

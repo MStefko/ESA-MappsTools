@@ -6,7 +6,7 @@ We export the datapack containing spacecraft resources from MAPPS, and analyze i
 
 ## Power consumption
 ```python
-from spice_tools.resource_analysis import PowerConsumptionGraph
+from mapps_tools.resource_analysis import PowerConsumptionGraph
 # Import MAPPS datapack containing spacecraft resource data
 # First we analyze power consumption
 pcg = PowerConsumptionGraph("14C6", '2031-04-25T22:40:47',
@@ -45,7 +45,7 @@ pcg.plot()
 
 ## Data acquisition
 ```python
-from spice_tools.resource_analysis import DataConsumptionGraph
+from mapps_tools.resource_analysis import DataConsumptionGraph
 # We can use the same datapack, as long as it contains
 # required fields with data consumption values.
 dcg = DataConsumptionGraph("14C6", '2031-04-25T22:40:47',
