@@ -1,6 +1,6 @@
 # SpiceTools
 This repository contains modules for working with MAPPS and
-Spice, e.g. manipulating timestamps, analyzing power consumption,
+SPICE, e.g. manipulating timestamps, analyzing power consumption,
 and generating mosaic instructions.
 
 # Feature overview
@@ -54,7 +54,7 @@ The Anaconda environment manager will automatically download and install require
 Python version.
 
  1. Clone the project to a local folder.
- 1. Navigate to project root folder `SpiceTools/` in terminal.
+ 1. Navigate to project root folder in terminal.
  2. Create new Anaconda environment called `spice_tools` with `python3.6` and required
  packages:
    - `conda env create -f environment.yml`
@@ -63,7 +63,7 @@ Python version.
    - (Using bash, you need to do `source activate spice_tools`.)
  3. Run tests to see if everything is working:
    - `python setup.py test`
-   - You can now `import spice_tools`, `import spice_tools.mosaics`, etc. when you are in the root project folder `SpiceTools/`
+   - You can now `import spice_tools`, `import spice_tools.mosaics`, etc. when you are in the root project folder.
  4. (Optional) If you want to use the module outside of its working directory, you need to install it into the current environment:
    - `python setup.py install`
    - You can now `import spice_tools`, `import spice_tools.mosaics`, etc. anywhere.
@@ -84,10 +84,10 @@ Afterwards, follow the instructions for Mac/Linux.
 
 ### Mac/Linux
  1. Clone the project to a local folder.
- 1. Navigate to project root folder `SpiceTools/` in terminal.
+ 1. Navigate to project root folder in terminal.
  3. Run tests to see if everything is working:
    - `python setup.py test`
-   - You can now `import spice_tools`, `import spice_tools.mosaics`, etc. when you are in the root project folder `SpiceTools/`
+   - You can now `import spice_tools`, `import spice_tools.mosaics`, etc. when you are in the root project folder.
  4. (Optional) If you want to use the module outside of its working directory, you need to install it into the local Python module index:
    - `python setup.py install`
    - You can now `import spice_tools`, `import spice_tools.mosaics`, etc. anywhere.
