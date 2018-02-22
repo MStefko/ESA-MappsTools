@@ -54,7 +54,6 @@ class TestCustomMosaic(TestCase):
 	</attitude>
 </block>
 '''
-        print(cm.generate_PTR())
         self.assertEqual(cm.generate_PTR(), generated_PTR)
 
         cm = CustomMosaic((1.72, 1.29), "CALLISTO", start_time, "min",
