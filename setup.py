@@ -20,6 +20,6 @@ setup(
         'matplotlib>=2.1.0',
         'iso8601>=0.1.12',
         'spiceypy>=2.1.0',
-        'shapely==1.6b2',
+        'shapely',
         'pandas>=0.21.0']
 )
