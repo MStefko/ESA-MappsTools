@@ -1,13 +1,10 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='SpiceTools',
+    name='spice_tools',
     version='0.1',
     packages=['spice_tools',
-              'spice_tools.mosaics',
-              'spice_tools.flybys',
-              'spice_tools.resource_analysis',
-              'spice_tools.timestamps'],
+              'spice_tools.mosaics'],
     url='https://gitlab.esa.int/MarcelStefko/SpiceTools/',
     license='Proprietary ESA internal code - reuse outside ESA not allowed without explicit permission.',
     author='Marcel Stefko',
@@ -21,5 +18,6 @@ setup(
         'iso8601>=0.1.12',
         'spiceypy>=2.1.0',
         'shapely',
-        'pandas>=0.21.0']
+        'pandas>=0.21.0',
+        'basemap']
 )
