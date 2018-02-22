@@ -2,7 +2,7 @@
 .cache/
 .eggs/
 .pytest_cache/
-.__pycache__/
-SpiceTools.egg-info/
+__pycache__/
+mapps_tools.egg-info/
 build/
 dist/

@@ -5,7 +5,7 @@ setup(
     version='1.0',
     packages=['mapps_tools',
               'mapps_tools.mosaics'],
-    url='https://gitlab.esa.int/MarcelStefko/SpiceTools/',
+    url='https://gitlab.esa.int/MarcelStefko/MappsTools/',
     license='Proprietary ESA internal code - reuse outside ESA not allowed without explicit permission.',
     author='Marcel Stefko',
     author_email='marcel.stefko@esa.int',
