@@ -1,5 +1,8 @@
 .idea/
 .cache/
+.eggs/
 .pytest_cache/
 .__pycache__/
-.SpiceTools.egg-info/
+SpiceTools.egg-info/
+build/
+dist/

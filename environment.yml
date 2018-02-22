@@ -1,0 +1,16 @@
+name: spice_tools
+channels:
+- andrewannex
+- conda-forge
+- defaults
+dependencies:
+- python=3.6
+- spiceypy=2.1.0
+- iso8601=0.1.12
+- matplotlib=2.1.0
+- pandas=0.21.0
+- shapely=1.6.2
+- six=1.11.0
+- numpy=1.13.3
+- scipy=1.0.0
+
