@@ -9,7 +9,7 @@ setup(
     license='Proprietary ESA internal code - reuse outside ESA not allowed without explicit permission.',
     author='Marcel Stefko',
     author_email='marcel.stefko@esa.int',
-    description=('Tools for working with MAPPS and Spice, '
+    description=('Tools for working with MAPPS and SPICE, '
                  'e.g. manipulating timestamps, analyzing power consumption, '
                  'and generating mosaic instructions.'),
     test_suite='tests',
