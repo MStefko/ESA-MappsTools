@@ -1,6 +1,6 @@
 # MappsTools
 This repository contains modules for working with MAPPS and
-Spice, e.g. manipulating timestamps, analyzing power consumption,
+SPICE, e.g. manipulating timestamps, analyzing power consumption,
 and generating mosaic instructions.
 
 # Feature overview
