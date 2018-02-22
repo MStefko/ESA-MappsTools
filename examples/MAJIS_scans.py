@@ -7,7 +7,7 @@ import spiceypy as spy
 MK_C32 = r"C:\Users\Marcel Stefko\Kernels\JUICE\mk\juice_crema_3_2_v151.tm"
 spy.furnsh(MK_C32)
 
-from mosaics import MajisScanGenerator
+from spice_tools.mosaics import MajisScanGenerator
 
 # Start time of scan during 22C11 egress
 # This function parses the iso8601 timestamp into a datetime object

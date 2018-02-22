@@ -37,15 +37,15 @@ dm.plot()
 # JANUS mosaic of sun-illuminated surface of Callisto during 14C6 egress
 start_time = datetime.strptime("2031-04-26T00:40:47", "%Y-%m-%dT%H:%M:%S")
 jmg = JanusMosaicGenerator("CALLISTO", "min", "deg")
-cm = jmg.generate_optimized_mosaic(start_time,
-                                   duration_guess_minutes=30,
-                                   max_exposure_time_s=10,
-                                   max_smear=0.25,
-                                   stabilization_time_s=5,
-                                   no_of_filters=4,
-                                   extra_margin=0.15,
-                                   overlap=0.10,
-                                   sunside=True)
+cm = jmg.generate_mosaic(start_time,
+                         duration_guess_minutes=30,
+                         max_exposure_time_s=10,
+                         max_smear=0.25,
+                         stabilization_time_s=5,
+                         no_of_filters=4,
+                         extra_margin=0.15,
+                         overlap=0.10,
+                         sunside=True)
 
 print(cm.generate_PTR(decimal_places=3))
 cm.plot()
@@ -54,7 +54,7 @@ r'''
 # JANUS mosaic of sun-illuminated surface of Europa during 6E1 egress
 start_time = datetime.strptime("2030-09-17T12:30:00", "%Y-%m-%dT%H:%M:%S")
 jmg = JanusMosaicGenerator("EUROPA", "min", "deg")
-cm = jmg.generate_optimized_mosaic(start_time,
+cm = jmg.generate_mosaic(start_time,
                                    duration_guess_minutes=30,
                                    max_exposure_time_s=20,
                                    max_smear=0.25,
