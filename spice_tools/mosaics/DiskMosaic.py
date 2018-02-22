@@ -9,8 +9,8 @@ from typing import List, Tuple
 
 import spiceypy as spy
 
-from mosaics.misc import Rectangle, get_body_angular_diameter_rad, get_illuminated_shape
-from mosaics.units import angular_units, time_units, convertAngleFromTo
+from .misc import Rectangle, get_body_angular_diameter_rad, get_illuminated_shape
+from .units import angular_units, time_units, convertAngleFromTo
 
 class DiskMosaic:
     """ Mosaic of a body's entire disk. """

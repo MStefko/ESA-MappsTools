@@ -4,11 +4,11 @@ from typing import Tuple, Union
 
 import spiceypy as spy
 
-from mosaics.CustomMosaic import CustomMosaic
-from mosaics.DiskMosaic import DiskMosaic
-from mosaics.MosaicGenerator import MosaicGenerator
-from mosaics.misc import get_max_dwell_time_s, get_body_angular_diameter_rad
-from mosaics.units import angular_units, time_units, convertAngleFromTo, convertTimeFromTo
+from .CustomMosaic import CustomMosaic
+from .DiskMosaic import DiskMosaic
+from .MosaicGenerator import MosaicGenerator
+from .misc import get_max_dwell_time_s, get_body_angular_diameter_rad
+from .units import angular_units, time_units, convertAngleFromTo, convertTimeFromTo
 
 
 class JanusMosaicGenerator:

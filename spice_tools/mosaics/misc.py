@@ -9,7 +9,7 @@ from shapely.geometry import Polygon
 import spiceypy as spy
 import numpy as np
 
-from mosaics.units import convertAngleFromTo, angular_units
+from .units import convertAngleFromTo, angular_units
 
 
 class Rectangle:

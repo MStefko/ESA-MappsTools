@@ -1,11 +1,11 @@
 # coding=utf-8
 from datetime import datetime
 
-from mosaics.units import angular_units, time_units, convertAngleFromTo, convertTimeFromTo
+from .units import angular_units, time_units, convertAngleFromTo, convertTimeFromTo
 import spiceypy as spy
 
-from mosaics.Scan import Scan
-from mosaics.ScanGenerator import ScanGenerator
+from .Scan import Scan
+from .ScanGenerator import ScanGenerator
 
 
 class MajisScanGenerator:

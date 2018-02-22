@@ -1,6 +1,6 @@
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
-from mosaics.MosaicGenerator import MosaicGenerator
+from spice_tools.mosaics.MosaicGenerator import MosaicGenerator
 
 from datetime import datetime
 
@@ -8,8 +8,8 @@ valid_start_time = datetime.strptime("2031-04-26T00:40:47", "%Y-%m-%dT%H:%M:%S")
 
 class TestMosaicGenerator(TestCase):
 
-    @patch('mosaics.DiskMosaic.spy.str2et', return_value=1.0)
-    @patch('mosaics.MosaicGenerator.get_body_angular_diameter_rad', return_value=0.19167923151263316)
+    @patch('spice_tools.mosaics.DiskMosaic.spy.str2et', return_value=1.0)
+    @patch('spice_tools.mosaics.MosaicGenerator.get_body_angular_diameter_rad', return_value=0.19167923151263316)
     def test_generate_symmetric_mosaic(self, mock_diam, mock_str2et):
         dmg = MosaicGenerator((3.0, 2.0), "JUICE", "CALLISTO", valid_start_time, "min",
                       "deg", 2.0, 0.04 * 60)
@@ -51,7 +51,7 @@ class TestMosaicGenerator(TestCase):
 
         self.assertEqual(osc(10, 1, 0.9), (91, -4.5, 0.1))
 
-    @patch('mosaics.MosaicGenerator.DiskMosaic')
+    @patch('spice_tools.mosaics.MosaicGenerator.DiskMosaic')
     def test_generate_symmetric_mosaic_explicit_values(self, mock_DiskMosaic):
         fun = MosaicGenerator.generate_symmetric_mosaic
         dmg = MagicMock()

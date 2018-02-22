@@ -3,7 +3,7 @@ import filecmp
 
 import os
 
-from timestamps import TimestampProcessor
+from spice_tools.timestamps import TimestampProcessor
 from iso8601 import ParseError
 
 unparseable_inputs = ['24:00:00', '-24:00:00', '00:60:00', '01:65:30', '--1:31:01',

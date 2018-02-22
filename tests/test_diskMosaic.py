@@ -3,7 +3,7 @@ from unittest import TestCase
 from datetime import datetime, timedelta
 from unittest.mock import Mock
 
-from mosaics.DiskMosaic import DiskMosaic
+from spice_tools.mosaics.DiskMosaic import DiskMosaic
 
 valid_start_time = datetime.strptime("2031-04-26T00:40:47", "%Y-%m-%dT%H:%M:%S")
 

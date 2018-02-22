@@ -3,7 +3,7 @@ from unittest import TestCase
 from datetime import datetime, timedelta
 from unittest.mock import Mock
 
-from mosaics.Scan import Scan
+from spice_tools.mosaics.Scan import Scan
 
 valid_time = datetime.strptime("2031-09-27T09:40:00", "%Y-%m-%dT%H:%M:%S")
 

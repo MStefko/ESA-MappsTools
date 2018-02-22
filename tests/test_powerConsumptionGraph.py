@@ -1,6 +1,6 @@
 from unittest import TestCase
 from os.path import split, join, abspath
-from resource_analysis import PowerConsumptionGraph
+from spice_tools.resource_analysis import PowerConsumptionGraph
 
 
 class TestPowerConsumptionGraph14C6(TestCase):

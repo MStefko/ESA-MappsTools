@@ -5,8 +5,8 @@ from typing import List, Tuple
 import numpy as np
 import spiceypy as spy
 
-from mosaics.DiskMosaic import DiskMosaic
-from mosaics.misc import Rectangle
+from .DiskMosaic import DiskMosaic
+from .misc import Rectangle
 
 
 class CustomMosaic:
