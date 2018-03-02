@@ -18,7 +18,7 @@ surface of a body.
 
 | Python plot | Resulting slew |
 | :--------: | :--------: |
-| <img src="doc/img/mosaic_14C6_sunside_JANUS.png" height="350"> | <video src="doc/img/video_14C6_sunside_JANUS.mp4" height="350" controls preload></video> |
+| <img src="doc/img/mosaic_14C6_sunside_JANUS.png" height="350"> |  <img src="doc/img/video_14C6_sunside_JANUS.gif" height="350"></img> |
 
 For details see **[JANUS mosaics.md](doc/JANUS_mosaics.md)**
 
@@ -27,7 +27,7 @@ Again, the slew can either cover the whole disk, or only the sun-illuminated por
 
 | Python plot | Resulting slew |
 | :--------: | :--------: |
-| <img src="doc/img/scan_22C11_full_MAJIS.png" width="450"> | ![](doc/img/video_22C11_full_MAJIS.mp4) |
+| <img src="doc/img/scan_22C11_full_MAJIS.png" width="450"> |   <img src="doc/img/video_22C11_full_MAJIS.gif" height="350"></img> |
 
 For details see **[MAJIS scans.md](doc/MAJIS_scans.md)**
 
