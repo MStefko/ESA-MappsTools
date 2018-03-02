@@ -18,7 +18,7 @@ surface of a body.
 
 | Python plot | Resulting slew |
 | :--------: | :--------: |
-| <img src="doc/img/mosaic_14C6_sunside_JANUS.png" width="450"> | ![](doc/img/video_14C6_sunside_JANUS.mp4) |
+| <img src="doc/img/mosaic_14C6_sunside_JANUS.png" height="350"> | <video src="doc/img/video_14C6_sunside_JANUS.mp4" height="350" controls preload></video> |
 
 For details see **[JANUS mosaics.md](doc/JANUS_mosaics.md)**
 
