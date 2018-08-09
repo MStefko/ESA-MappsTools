@@ -157,6 +157,27 @@ def get_max_dwell_time_s(max_smear: float, probe: str, body: str,
     return max_smear / smear_per_second
 
 
+def get_smear_px(exposure_time_s: float, probe: str, body: str, time: datetime, fov_full_angle_deg: float,
+                 fov_full_px: int,) -> float:
+    """ Calculate the smear value in pixels for given geometrical conditions and exposure time.
+
+    :param exposure_time_s: Exposure time in seconds
+    :param probe: SPICE name of probe
+    :param body: SPICE name of target body
+    :param time: datetime of computation
+    :param fov_full_angle_deg: full angle of one FOV dimension
+    :param fov_full_px: full pixel count of the same FOV dimension
+    :return: Smear value in units of pixels
+    """
+    if exposure_time_s <= 0.0:
+        raise ValueError("exposure time must be positive")
+    pixel_size_km = get_pixel_size_km(probe, body, time, fov_full_angle_deg, fov_full_px)
+    nadir_velocity_kps = get_nadir_point_surface_velocity_kps(probe, body, time)
+    smear_per_second = nadir_velocity_kps / pixel_size_km
+    smear = smear_per_second * exposure_time_s
+    return smear
+
+
 def get_body_angular_diameter_rad(probe: str, body: str, time: datetime) -> float:
     """ Calculates angular diameter of given body as viewed from probe at given time
 

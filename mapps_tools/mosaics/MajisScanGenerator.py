@@ -4,8 +4,8 @@ from datetime import datetime
 from .units import angular_units, time_units, convertAngleFromTo, convertTimeFromTo
 import spiceypy as spy
 
-from .Scan import Scan
-from .ScanGenerator import ScanGenerator
+from mapps_tools.mosaics.Scan import Scan
+from mapps_tools.mosaics.ScanGenerator import ScanGenerator
 
 
 class MajisScanGenerator:

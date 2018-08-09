@@ -6,5 +6,5 @@
   JUICE-MAJIS imaging.
 """
 
-from .JanusMosaicGenerator import JanusMosaicGenerator
-from .MajisScanGenerator import MajisScanGenerator
+from mapps_tools.mosaics.JanusMosaicGenerator import JanusMosaicGenerator
+from mapps_tools.mosaics.MajisScanGenerator import MajisScanGenerator

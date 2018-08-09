@@ -4,11 +4,11 @@ from typing import Tuple, List
 
 import numpy as np
 
-from .CustomMosaic import CustomMosaic
-from .DiskMosaic import DiskMosaic
-from .misc import get_body_angular_diameter_rad, get_illuminated_shape, Rectangle
-from .tsp_solver import solve_tsp
-from .units import angular_units, time_units, convertAngleFromTo
+from mapps_tools.mosaics.CustomMosaic import CustomMosaic
+from mapps_tools.mosaics.DiskMosaic import DiskMosaic
+from mapps_tools.mosaics.misc import get_body_angular_diameter_rad, get_illuminated_shape, Rectangle
+from mapps_tools.mosaics.tsp_solver import solve_tsp
+from mapps_tools.mosaics.units import angular_units, time_units, convertAngleFromTo
 
 
 class MosaicGenerator:

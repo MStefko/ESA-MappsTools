@@ -3,10 +3,10 @@ from datetime import datetime
 
 import numpy as np
 
-from .Scan import Scan
-from .MosaicGenerator import MosaicGenerator
-from .misc import get_body_angular_diameter_rad, get_illuminated_shape
-from .units import time_units, angular_units, convertTimeFromTo, convertAngleFromTo
+from mapps_tools.mosaics.Scan import Scan
+from mapps_tools.mosaics.MosaicGenerator import MosaicGenerator
+from mapps_tools.mosaics.misc import get_body_angular_diameter_rad, get_illuminated_shape
+from mapps_tools.mosaics.units import time_units, angular_units, convertTimeFromTo, convertAngleFromTo
 
 _optimize_steps_centered = MosaicGenerator._optimize_steps_centered
 

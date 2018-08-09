@@ -9,8 +9,8 @@ from typing import List, Tuple
 import spiceypy as spy
 from matplotlib import pyplot as plt
 
-from .misc import Rectangle, get_body_angular_diameter_rad, get_illuminated_shape
-from .units import angular_units, time_units, convertAngleFromTo
+from mapps_tools.mosaics.misc import Rectangle, get_body_angular_diameter_rad, get_illuminated_shape
+from mapps_tools.mosaics.units import angular_units, time_units, convertAngleFromTo
 
 
 class Scan:
